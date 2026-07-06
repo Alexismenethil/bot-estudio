@@ -73,7 +73,7 @@ independent of Library, Trainer, Exam, or Feynman.
 2. **Given** a student answers a card as correct, **When** the next review is recalculated, **Then** the new interval is greater than or equal to the previous interval (it never decreases).
 3. **Given** a student answers a card as incorrect, **When** the next review is recalculated, **Then** the interval resets to a short value that is still a valid, non-negative, non-past date.
 4. **Given** repeated incorrect or hard answers on a card, **When** its ease factor is recalculated, **Then** the ease factor never drops below 1.3.
-5. **Given** a student opens a course or topic, **When** they view the review queue, **Then** they see counts of due spaced-repetition items today and this week, broken down by item type, topic, and course.
+5. **Given** a student opens a course or topic, **When** they view the review queue, **Then** they see counts of due spaced-repetition items today and within the next 7 days (rolling window, not calendar week), broken down by item type, topic, and course.
 6. **Given** a Bank Question already has a future scheduled review date, **When** the student fails it in a Trainer or Exam session, **Then** its schedule is immediately reset by the incorrect-outcome rule, overriding the previously scheduled date.
 7. **Given** a Bank Question already has a scheduled review date, **When** the student answers it correctly in a Trainer or Exam session (not the official P2 review), **Then** its next-review date, interval, and ease factor remain unchanged — only the official P2 review can advance the schedule on a correct answer.
 
@@ -175,7 +175,7 @@ primary AI service is forced to fail — independent of Trainer/Exam.
 - **FR-011** (US2): A newly created flashcard MUST be due for review on its creation date.
 - **FR-012** (US2): System MUST let a student record one of three outcomes per flashcard review: correct, incorrect, or hard.
 - **FR-013** (US2): System MUST recalculate each spaced-repetition item's (Flashcard or Bank Question) next-review interval and ease factor after every recorded outcome, such that a correct outcome never decreases the interval, an incorrect outcome resets the interval to a short non-negative, non-past value, and the ease factor never drops below 1.3. This rule applies uniformly to Flashcards and Bank Questions (see FR-018).
-- **FR-014** (US2): System MUST show, per topic and per course, the count of spaced-repetition items due today and due within the current week, separated by item type (Flashcards and Bank Questions).
+- **FR-014** (US2): System MUST show, per topic and per course, the count of spaced-repetition items due today and due within the next 7 days (a rolling window: today through today+7, NOT the calendar week), separated by item type (Flashcards and Bank Questions).
 - **FR-015** (US3): System MUST let a student start an untimed trainer session scoped to a chosen topic or course.
 - **FR-016** (US3): Trainer sessions MUST draw questions from the question bank of the chosen topic/course and MUST NOT impose a time limit.
 - **FR-017** (US3): System MUST show immediate feedback (correct/incorrect plus explanation) after each trainer answer, before advancing to the next question.
@@ -184,7 +184,7 @@ primary AI service is forced to fail — independent of Trainer/Exam.
 - **FR-020** (US4): System MUST automatically stop an exam and grade all questions answered so far when the configured time limit reaches zero.
 - **FR-021** (US4): System MUST produce a score report after an exam ends, showing total score and a breakdown of failed topics/questions.
 - **FR-022** (US5): System MUST let a student submit a free-text explanation of a topic for AI evaluation.
-- **FR-023** (US5): The evaluation MUST be structured to indicate what is correct, what is missing, and what is wrong in the submitted explanation.
+- **FR-023** (US5): The evaluation MUST be structured to indicate what is correct, what is missing, what is wrong, and what the student should review next, in the submitted explanation.
 - **FR-024** (US5): When the topic has associated Library documents, the evaluation MUST use them as reference and MUST be able to cite the relevant page.
 - **FR-025** (US5): System MUST display which engine (primary AI service or local fallback model) produced each evaluation.
 - **FR-026** (General): System MUST NOT require any user account beyond a single local user (no multi-user authentication).

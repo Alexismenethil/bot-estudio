@@ -38,8 +38,8 @@ shared with the client. Structured log event per request at the DB/AI boundaries
 
 | Route | Req | Res |
 |---|---|---|
-| `GET /api/review/due?scope=course:id\|topic:id&horizon=today\|week` | — | due items (union flashcards+bank questions), counts by type/topic/course (FR-014, SC-007) |
-| `POST /api/review/answer` | `{ itemType, itemId, outcome, context }` | `{ state, scheduleChanged }` — sole write path into `sm2Next`; writes `review_logs`; used by review (context='review'), trainer/exam wiring uses context accordingly (FR-013, FR-018) |
+| `GET /api/review/due?scope=course:id\|topic:id&horizon=today\|week&today=YYYY-MM-DD` | — | due items (union flashcards+bank questions), counts by type/topic/course (FR-014, SC-007). `today` is REQUIRED (no server-side notion of "the student's local day"); `horizon=week` means a **rolling 7-day window** (`next_review_at ≤ today + 7`), NOT the calendar week (clarified 2026-07-05) |
+| `POST /api/review/answer` | `{ itemType, itemId, outcome, context, today }` | `{ state, scheduleChanged }` — sole write path into `sm2Next`; `today` is REQUIRED and passed straight through to the pure engine (contracts/engine.md), keeping the endpoint deterministic/testable; writes `review_logs`; used by review (context='review'), trainer/exam wiring uses context accordingly (FR-013, FR-018) |
 | `POST/PATCH/DELETE /api/flashcards[..:id]` | front/back + topicId | CRUD (FR-010) |
 | `POST/PATCH/DELETE /api/bank-questions[..:id]` | prompt/correctAnswer/explanation + topicId | CRUD (FR-031) |
 
@@ -64,7 +64,7 @@ shared with the client. Structured log event per request at the DB/AI boundaries
 
 | Route | Req | Res |
 |---|---|---|
-| `POST /api/feynman/submissions` | `{ topicId, explanation }` | `Submission` (status `submitted`) · 422 empty/oversize (edge case) |
+| `POST /api/feynman/submissions` | `{ topicId, explanation }` | `Submission` (status `submitted`) · `422` if `explanation` is empty/whitespace-only or **exceeds 20,000 characters** (concrete oversize bound fixed 2026-07-05, replacing the previously-undefined edge case) |
 | `POST /api/feynman/submissions/:id/evaluate` | — | `{ evaluation, engine:'gemini' } \| 502 { failureClass }` — server path retrieves topic-doc chunks (FR-024) + Gemini structured output; success sets status `evaluated`; on 502 client runs local engine and persists via the route below (FR-008) |
 | `POST /api/feynman/retrieve` | `{ submissionId }` | `{ chunks: [{ chunkId, documentId, pageNumber, content }] }` — Scenario A mirror of `POST /api/assistant/retrieve` (R1-A): pgvector top-k across ALL documents of the submission's topic (hence `documentId` per chunk, unlike the single-document assistant), embedding the explanation text server-side with no Gemini involvement, so the client-side local engine can ground its evaluation and cite `{documentId, page}` (FR-024). `{ chunks: [] }` when the topic has no `ready` documents (evaluation proceeds ungrounded, citations omitted) |
 | `POST /api/feynman/submissions/:id/evaluations` | `{ engine:'local', evaluation }` | `201` — persists client-side local result and sets submission status `evaluated` |

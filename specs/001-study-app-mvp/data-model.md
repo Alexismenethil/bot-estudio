@@ -131,7 +131,7 @@ UNIQUE (session_kind, session_id, question_id) — one answer per question per s
 |---|---|---|
 | id | uuid | PK |
 | topic_id | uuid | FK → topics, NOT NULL |
-| explanation | text | NOT NULL, non-empty (edge case: empty submission rejected at validation) |
+| explanation | text | NOT NULL, non-empty, ≤ 20,000 characters (edge case: empty or oversize submission rejected at validation — bound fixed 2026-07-05 so it's testable, see contracts/api.md) |
 | status | text | NOT NULL, CHECK in ('submitted','pending_retry','evaluated'), default 'submitted' |
 
 State transitions: `submitted` (initial — student sent it, no evaluation attempt has
@@ -164,5 +164,5 @@ review_logs → (item_type, item_id) soft-refs flashcards|bank_questions
 
 ## Derived queries (no tables)
 
-- **Due queue** (FR-014, SC-003, SC-007): UNION of flashcards and bank_questions where `next_review_at ≤ today`, grouped by course/topic/item-type; "due this week" uses `≤ today + 7`. Priority ordering: most-overdue first.
+- **Due queue** (FR-014, SC-003, SC-007): UNION of flashcards and bank_questions where `next_review_at ≤ today`, grouped by course/topic/item-type; "due within the next 7 days" is a **rolling 7-day window** (`next_review_at ≤ today + 7`), NOT the calendar week (clarified 2026-07-05 — avoids a Sunday-boundary discrepancy between spec wording and implementation). Priority ordering: most-overdue first. `today` is always caller-supplied (`GET /api/review/due?...&today=YYYY-MM-DD`) — there is no reliable server-side notion of "the student's local day," and this keeps the query deterministic/testable, mirroring the SM-2 engine's injected-`today` contract (contracts/engine.md).
 - **Score report breakdown** (FR-021): `session_answers` joined to `bank_questions`/`topics` for the failed-per-topic rollup.

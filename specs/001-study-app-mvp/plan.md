@@ -36,10 +36,11 @@ with 384-dim embeddings and `page_number`); Vercel Blob for the PDF binaries;
 IndexedDB (client) as a read-through cache of the open document's chunks + embeddings
 for the no-connectivity fallback path
 
-**Testing**: Vitest (unit/component/integration, TDD Red-Green-Refactor);
-`@stryker-mutator/vitest-runner` (mutation testing, break threshold 80% on
-`src/lib/engine`, `src/lib/scoring`, `src/lib/ai/feynman-eval`); fast-check
-(property-based tests for SM-2, scoring, timer math); Playwright +
+**Testing**: Vitest (unit/component/integration, TDD Red-Green-Refactor); Postgres
+integration tests run against PGlite + pgvector (hermetic, in-process, no live Neon
+needed in CI/local runs); `@stryker-mutator/vitest-runner` (mutation testing, break
+threshold 80% on `src/lib/engine`, `src/lib/scoring`, `src/lib/ai/feynman-eval`);
+fast-check (property-based tests for SM-2, scoring, timer math); Playwright +
 `@axe-core/playwright` (screen-level WCAG 2.1 AA sweep) and vitest-axe (component
 level); MSW to simulate Gemini timeout / 429 / network-failure
 
