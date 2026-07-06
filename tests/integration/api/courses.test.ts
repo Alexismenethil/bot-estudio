@@ -9,6 +9,8 @@ vi.mock("@/lib/db", async () => {
 const { GET: getCourses, POST: postCourse } = await import("@/app/api/courses/route");
 const { POST: postTopic } = await import("@/app/api/topics/route");
 const { PATCH: patchTopic, DELETE: deleteTopic } = await import("@/app/api/topics/[id]/route");
+const { db } = await import("@/lib/db");
+const { bankQuestions, flashcards } = await import("@/lib/db/schema");
 
 function jsonRequest(body: unknown, method = "POST") {
   return new Request("https://example.com/api/test", {
@@ -45,6 +47,29 @@ describe("GET/POST /api/courses [FR-009]", () => {
   it("rejects an invalid body with 400", async () => {
     const response = await postCourse(jsonRequest({ code: "" }));
     expect(response.status).toBe(400);
+  });
+
+  it("GET /api/courses [FR-014]: includes due-count rollups when today is supplied", async () => {
+    const course = await createCourse(`ROLL-${Math.random().toString(36).slice(2, 8)}`, "Rollups");
+    const topic = await (await postTopic(jsonRequest({ courseId: course.id, name: "Due" }))).json();
+    await db
+      .insert(flashcards)
+      .values({ topicId: topic.id, front: "due", back: "today", nextReviewAt: "2026-07-06" });
+    await db.insert(bankQuestions).values({
+      topicId: topic.id,
+      prompt: "week",
+      correctAnswer: "answer",
+      explanation: "explanation",
+      nextReviewAt: "2026-07-10",
+    });
+
+    const response = await getCourses(new Request("https://example.com/api/courses?today=2026-07-06"));
+    const list = await response.json();
+    const rolled = list.find((item: { id: string }) => item.id === course.id);
+
+    expect(rolled.dueToday).toBe(1);
+    expect(rolled.dueWeek).toBe(2);
+    expect(rolled.dueByType).toEqual({ flashcard: 1, bankQuestion: 1 });
   });
 });
 

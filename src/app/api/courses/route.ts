@@ -3,12 +3,34 @@ import { db } from "@/lib/db";
 import { courses } from "@/lib/db/schema";
 import { createCourseSchema } from "@/lib/validation/courses";
 import { isUniqueViolation } from "@/lib/db/errors";
+import { getDueQueue } from "@/lib/db/queries";
 
-// NOTE: due-count rollups (FR-014) join against flashcards/bank_questions,
-// which don't exist until Phase 4 (US2). Deferred until then.
-export async function GET() {
+export async function GET(request?: Request) {
   const rows = await db.select().from(courses);
-  return NextResponse.json(rows);
+  const today = request ? new URL(request.url).searchParams.get("today") : null;
+  if (!today) {
+    return NextResponse.json(rows);
+  }
+
+  const [todayQueue, weekQueue] = await Promise.all([
+    getDueQueue(db, { scope: "all", horizon: "today", today }),
+    getDueQueue(db, { scope: "all", horizon: "week", today }),
+  ]);
+
+  const withRollups = rows.map((course) => {
+    const todayCourse = todayQueue.counts.byCourse.find((count) => count.courseId === course.id);
+    const weekCourse = weekQueue.counts.byCourse.find((count) => count.courseId === course.id);
+    return {
+      ...course,
+      dueToday: todayCourse?.dueCount ?? 0,
+      dueWeek: weekCourse?.dueCount ?? 0,
+      dueByType: {
+        flashcard: weekCourse?.flashcards ?? 0,
+        bankQuestion: weekCourse?.bankQuestions ?? 0,
+      },
+    };
+  });
+  return NextResponse.json(withRollups);
 }
 
 export async function POST(request: Request) {

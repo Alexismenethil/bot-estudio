@@ -1,4 +1,18 @@
-import { pgTable, uuid, text, integer, timestamp, unique, check, index, vector, jsonb } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  date,
+  integer,
+  jsonb,
+  pgTable,
+  real,
+  text,
+  timestamp,
+  unique,
+  check,
+  index,
+  vector,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 // courses / topics (US2; FR-009) — data-model.md
@@ -96,5 +110,81 @@ export const assistantMessages = pgTable(
       "assistant_messages_engine_check",
       sql`${table.engine} is null or ${table.engine} in ('gemini','local')`,
     ),
+  ],
+);
+
+const sm2Columns = {
+  nextReviewAt: date("next_review_at").notNull().default(sql`CURRENT_DATE`),
+  intervalDays: integer("interval_days").notNull().default(0),
+  easeFactor: real("ease_factor").notNull().default(2.5),
+  repetitions: integer("repetitions").notNull().default(0),
+  lastOutcome: text("last_outcome"),
+};
+
+// flashcards / bank_questions / review_logs (US2; FR-010-FR-014, FR-018) — data-model.md
+export const flashcards = pgTable(
+  "flashcards",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    topicId: uuid("topic_id")
+      .notNull()
+      .references(() => topics.id, { onDelete: "cascade" }),
+    front: text("front").notNull(),
+    back: text("back").notNull(),
+    ...sm2Columns,
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    check("flashcards_interval_days_check", sql`${table.intervalDays} >= 0`),
+    check("flashcards_ease_factor_check", sql`${table.easeFactor} >= 1.3`),
+    check("flashcards_repetitions_check", sql`${table.repetitions} >= 0`),
+    check(
+      "flashcards_last_outcome_check",
+      sql`${table.lastOutcome} is null or ${table.lastOutcome} in ('correct','incorrect','hard')`,
+    ),
+  ],
+);
+
+export const bankQuestions = pgTable(
+  "bank_questions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    topicId: uuid("topic_id")
+      .notNull()
+      .references(() => topics.id, { onDelete: "cascade" }),
+    prompt: text("prompt").notNull(),
+    correctAnswer: text("correct_answer").notNull(),
+    explanation: text("explanation").notNull(),
+    ...sm2Columns,
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    check("bank_questions_interval_days_check", sql`${table.intervalDays} >= 0`),
+    check("bank_questions_ease_factor_check", sql`${table.easeFactor} >= 1.3`),
+    check("bank_questions_repetitions_check", sql`${table.repetitions} >= 0`),
+    check(
+      "bank_questions_last_outcome_check",
+      sql`${table.lastOutcome} is null or ${table.lastOutcome} in ('correct','incorrect','hard')`,
+    ),
+  ],
+);
+
+export const reviewLogs = pgTable(
+  "review_logs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    itemType: text("item_type").notNull(),
+    itemId: uuid("item_id").notNull(),
+    context: text("context").notNull(),
+    outcome: text("outcome").notNull(),
+    scheduleChanged: boolean("schedule_changed").notNull(),
+    prevState: jsonb("prev_state").notNull(),
+    newState: jsonb("new_state").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    check("review_logs_item_type_check", sql`${table.itemType} in ('flashcard','bank_question')`),
+    check("review_logs_context_check", sql`${table.context} in ('review','trainer','exam')`),
+    check("review_logs_outcome_check", sql`${table.outcome} in ('correct','incorrect','hard')`),
   ],
 );
