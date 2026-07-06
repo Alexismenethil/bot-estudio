@@ -145,15 +145,15 @@ Single Next.js 16 project at repo root: `src/app` (routes + API), `src/lib` (pur
 
 ### Tests & Implementation for User Story 4 (MANDATORY per constitution Principle I) ⚠️
 
-- [ ] T056 [P] [US4] Write failing property + unit tests `tests/property/scoring/timer.property.test.ts` + `tests/unit/scoring/timer.test.ts`: `remainingMs ≥ 0` (clamped), monotone non-increasing in `now`, `isExpired ⇔ remainingMs = 0`, resume equals real elapsed time [FR-020, FR-029, US4-AC5, US4-AC6, Principle III]
-- [ ] T057 [US4] Implement `src/lib/scoring/timer.ts` → T056 green
-- [ ] T058 [P] [US4] Write failing property + unit tests `tests/property/scoring/grade.property.test.ts` + `tests/unit/scoring/grade.test.ts`: `0 ≤ correct ≤ answered ≤ total`; unanswered counted wrong; `failed` = wrong ∪ unanswered; `scorePct` formula [FR-020, FR-021, US4-AC2, US4-AC3]
-- [ ] T059 [US4] Implement `src/lib/scoring/grade.ts` → T058 green
-- [ ] T060 [US4] Run Stryker scoped to `src/lib/scoring/`; kill mutants to ≥ 80% (Principle II gate — record score)
-- [ ] T061 [US4] Write failing integration tests `tests/integration/api/exam.test.ts`: create → server `started_at`, 422 empty bank [US4-AC1]; GET past deadline auto-finalizes [US4-AC6]; answers after expiry → 409 rejected [FR-020]; finalize idempotent → report + SM-2 override for failed questions [FR-021, US4-AC3, US4-AC4]; GET returns server-computed `remainingMs` for resume [US4-AC5, FR-029]
-- [ ] T062 [US4] Implement `exam_sessions` schema + migration + `src/app/api/exam/sessions/*` routes + `src/lib/session/exam.ts` → T061 green
-- [ ] T063 [US4] Write failing a11y/component tests `tests/a11y/exam.test.tsx`, then implement Exam UI `src/app/exam/*`: duration config, countdown rendered from server values (cosmetic only), report screen with score + failed breakdown, resume/expired states [US4-AC2, US4-AC3, US4-AC5, US4-AC6, FR-028]
-- [ ] T064 [US4] Playwright `e2e/us4-exam.spec.ts`: quickstart scenario 4 (expiry, close/reopen); **assert the score report renders within 5 seconds of the exam ending** (SC-005 — explicit timing check, not just presence of the report)
+- [X] T056 [P] [US4] Write failing property + unit tests `tests/property/scoring/timer.property.test.ts` + `tests/unit/scoring/timer.test.ts`: `remainingMs ≥ 0` (clamped), monotone non-increasing in `now`, `isExpired ⇔ remainingMs = 0`, resume equals real elapsed time [FR-020, FR-029, US4-AC5, US4-AC6, Principle III]
+- [X] T057 [US4] Implement `src/lib/scoring/timer.ts` → T056 green
+- [X] T058 [P] [US4] Write failing property + unit tests `tests/property/scoring/grade.property.test.ts` + `tests/unit/scoring/grade.test.ts`: `0 ≤ correct ≤ answered ≤ total`; unanswered counted wrong; `failed` = wrong ∪ unanswered; `scorePct` formula [FR-020, FR-021, US4-AC2, US4-AC3]
+- [X] T059 [US4] Implement `src/lib/scoring/grade.ts` → T058 green
+- [X] T060 [US4] Run Stryker scoped to `src/lib/scoring/`; kill mutants to ≥ 80% (Principle II gate — recorded score: 94.74%)
+- [X] T061 [US4] Write failing integration tests `tests/integration/api/exam.test.ts`: create → server `started_at`, 422 empty bank [US4-AC1]; GET past deadline auto-finalizes [US4-AC6]; answers after expiry → 409 rejected [FR-020]; finalize idempotent → report + SM-2 override for failed questions [FR-021, US4-AC3, US4-AC4]; GET returns server-computed `remainingMs` for resume [US4-AC5, FR-029]
+- [X] T062 [US4] Implement `exam_sessions` schema + migration + `src/app/api/exam/sessions/*` routes + `src/lib/session/exam.ts` → T061 green
+- [X] T063 [US4] Write failing a11y/component tests `tests/a11y/exam.test.tsx`, then implement Exam UI `src/app/exam/*`: duration config, countdown rendered from server values (cosmetic only), report screen with score + failed breakdown, resume/expired states [US4-AC2, US4-AC3, US4-AC5, US4-AC6, FR-028]
+- [X] T064 [US4] Playwright `e2e/us4-exam.spec.ts`: quickstart scenario 4 (expiry, close/reopen); **assert the score report renders within 5 seconds of the exam ending** (SC-005 — explicit timing check, not just presence of the report)
 
 **Checkpoint**: US1–US4 independently functional
 

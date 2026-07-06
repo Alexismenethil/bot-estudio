@@ -230,3 +230,32 @@ export const sessionAnswers = pgTable(
     check("session_answers_session_kind_check", sql`${table.sessionKind} in ('trainer','exam')`),
   ],
 );
+
+export const examSessions = pgTable(
+  "exam_sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    scopeType: text("scope_type").notNull(),
+    scopeId: uuid("scope_id").notNull(),
+    questionIds: uuid("question_ids").array().notNull(),
+    durationSeconds: integer("duration_seconds").notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    status: text("status").notNull().default("active"),
+    finalizedAt: timestamp("finalized_at", { withTimezone: true }),
+    totalQuestions: integer("total_questions"),
+    correctCount: integer("correct_count"),
+  },
+  (table) => [
+    check("exam_sessions_scope_type_check", sql`${table.scopeType} in ('topic','course')`),
+    check("exam_sessions_duration_seconds_check", sql`${table.durationSeconds} > 0`),
+    check("exam_sessions_status_check", sql`${table.status} in ('active','finished')`),
+    check(
+      "exam_sessions_total_questions_check",
+      sql`${table.totalQuestions} is null or ${table.totalQuestions} >= 0`,
+    ),
+    check(
+      "exam_sessions_correct_count_check",
+      sql`${table.correctCount} is null or ${table.correctCount} >= 0`,
+    ),
+  ],
+);

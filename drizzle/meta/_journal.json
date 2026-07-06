@@ -43,6 +43,13 @@
       "when": 1783356642215,
       "tag": "0005_trainer_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783358552408,
+      "tag": "0006_exam_sessions",
+      "breakpoints": true
     }
   ]
 }
