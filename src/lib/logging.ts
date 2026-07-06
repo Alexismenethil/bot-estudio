@@ -1,20 +1,12 @@
-export type LogLevel = "info" | "warn" | "error";
+import type { EngineName, FailureClass } from "@/lib/ai/types";
 
-export type FailureClass =
-  | "timeout"
-  | "quota"
-  | "network"
-  | "invalid_response"
-  | "unsupported"
-  | "oom"
-  | "not_cached"
-  | "inference_error";
+export type LogLevel = "info" | "warn" | "error";
 
 export interface LogEvent {
   boundary: string;
   message: string;
   level?: LogLevel;
-  engine?: "gemini" | "local";
+  engine?: EngineName;
   failure_class?: FailureClass;
   expected_degradation?: boolean;
   latency_ms?: number;

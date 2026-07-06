@@ -11,6 +11,14 @@ const eslintConfig = defineConfig([
   // it via jsxA11y.flatConfigs.recommended would conflict, so only merge its rules.
   { rules: jsxA11y.flatConfigs.recommended.rules },
   eslintConfigPrettier,
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
