@@ -129,3 +129,16 @@ Thumbs.db
 
 # Vercel
 .vercel
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Stryker mutation testing
+.stryker-tmp/
+reports/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

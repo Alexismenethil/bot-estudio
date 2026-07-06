@@ -29,13 +29,13 @@ Single Next.js 16 project at repo root: `src/app` (routes + API), `src/lib` (pur
 
 **Purpose**: Project scaffolding and the five-gate test toolchain
 
-- [ ] T001 Scaffold Next.js 16 app at repo root (`pnpm create next-app`: TypeScript strict, App Router, Tailwind CSS 4, `src/` dir); verify `package.json` pins `"next": "^16.2.10"` (plan.md — the access gate depends on Next 16's `proxy.ts` convention)
-- [ ] T002 Install runtime deps: `drizzle-orm @neondatabase/serverless @google/genai @huggingface/transformers pdfjs-dist @vercel/blob jose zod` + dev `drizzle-kit`
-- [ ] T003 [P] Configure Vitest in `vitest.config.ts`: projects for unit/property/integration/a11y; jsdom for components; PGlite with pgvector as hermetic Postgres for integration tests; MSW server in `tests/setup.ts`; install `fast-check`, `msw`, `vitest-axe`, `@electric-sql/pglite`. **Risk note**: if PGlite rejects `CREATE INDEX ... USING hnsw` (unverified support), skip the HNSW index migration in the test environment and fall back to exact-scan pgvector queries at test scale — do not let index creation fail the suite
-- [ ] T004 [P] Configure StrykerJS in `stryker.config.json`: `@stryker-mutator/vitest-runner`; `mutate` limited to `src/lib/engine/**`, `src/lib/scoring/**`, `src/lib/ai/feynman-eval.ts`; `thresholds.break: 80` (Principle II)
-- [ ] T005 [P] Configure Playwright + `@axe-core/playwright` in `playwright.config.ts` + `e2e/` (WCAG 2.1 A/AA tags)
-- [ ] T006 [P] Configure ESLint (incl. `eslint-plugin-jsx-a11y`) + Prettier; add pnpm scripts: `test`, `test:property`, `test:mutation`, `test:a11y`, `test:e2e`, `db:migrate`, `db:seed`, `db:timeshift`
-- [ ] T007 [P] Create `.env.local.example` documenting `DATABASE_URL`, `APP_PASSCODE`, `SESSION_SECRET`, `GEMINI_API_KEY`, `BLOB_READ_WRITE_TOKEN` (quickstart.md)
+- [X] T001 Scaffold Next.js 16 app at repo root (`pnpm create next-app`: TypeScript strict, App Router, Tailwind CSS 4, `src/` dir); verify `package.json` pins `"next": "^16.2.10"` (plan.md — the access gate depends on Next 16's `proxy.ts` convention)
+- [X] T002 Install runtime deps: `drizzle-orm @neondatabase/serverless @google/genai @huggingface/transformers pdfjs-dist @vercel/blob jose zod` + dev `drizzle-kit`
+- [X] T003 [P] Configure Vitest in `vitest.config.ts`: projects for unit/property/integration/a11y; jsdom for components; PGlite with pgvector as hermetic Postgres for integration tests; MSW server in `tests/setup.ts`; install `fast-check`, `msw`, `vitest-axe`, `@electric-sql/pglite`. **Risk note resolved**: verified empirically against `@electric-sql/pglite@0.5.4` that `CREATE INDEX ... USING hnsw` works (pgvector ships as the separate `@electric-sql/pglite-pgvector` package in this version, not a `contrib/` entry) — no exact-scan fallback needed; see `tests/integration/_setup-pglite.test.ts`
+- [X] T004 [P] Configure StrykerJS in `stryker.config.json`: `@stryker-mutator/vitest-runner`; `mutate` limited to `src/lib/engine/**`, `src/lib/scoring/**`, `src/lib/ai/feynman-eval.ts`; `thresholds.break: 80` (Principle II). Required explicit `"plugins": ["@stryker-mutator/vitest-runner"]` (autoloading didn't resolve it under pnpm). Dry-run confirmed reachable; will report real scores once T042+ adds mutable code
+- [X] T005 [P] Configure Playwright + `@axe-core/playwright` in `playwright.config.ts` + `e2e/` (WCAG 2.1 A/AA tags)
+- [X] T006 [P] Configure ESLint (incl. `eslint-plugin-jsx-a11y`) + Prettier; add pnpm scripts: `test`, `test:property`, `test:mutation`, `test:a11y`, `test:e2e`, `db:migrate`, `db:seed`, `db:timeshift`
+- [X] T007 [P] Create `.env.local.example` documenting `DATABASE_URL`, `APP_PASSCODE`, `SESSION_SECRET`, `GEMINI_API_KEY`, `BLOB_READ_WRITE_TOKEN` (quickstart.md)
 
 ---
 
@@ -45,14 +45,14 @@ Single Next.js 16 project at repo root: `src/app` (routes + API), `src/lib` (pur
 
 **⚠️ CRITICAL**: TDD order inside each pair: the test task MUST fail before its implementation task starts.
 
-- [ ] T008 Drizzle client `src/lib/db/index.ts` + `drizzle.config.ts` + migration 0001 (`CREATE EXTENSION IF NOT EXISTS vector`)
-- [ ] T009 `courses` + `topics` schema in `src/lib/db/schema.ts` + migration (UNIQUE `code`; UNIQUE `(course_id, name)`; cascades per data-model.md)
-- [ ] T010 [P] Write failing unit test `tests/unit/logging.test.ts` (event shape: boundary, engine?, failure_class?, expected_degradation, latency_ms), then implement structured JSON logger `src/lib/logging.ts` (Principle VIII)
-- [ ] T011 Write failing integration tests `tests/integration/proxy.test.ts`: uncookied `GET /` → redirect `/unlock`; wrong passcode → 401; correct passcode → signed cookie + access; tampered cookie → redirect [FR-026]
-- [ ] T012 Implement gate → T011 green: `src/proxy.ts` (named export `proxy` — `middleware.ts` is prohibited in this project since middleware is deprecated/renamed to proxy in Next 16, research.md R6), `src/app/api/unlock/route.ts`, `src/lib/auth.ts` (double-HMAC timing-safe compare + jose HS256 cookie, 30-day expiry)
-- [ ] T013 Write failing integration tests `tests/integration/api/courses.test.ts`: GET/POST `/api/courses` (409 duplicate code), POST/PATCH/DELETE `/api/topics` [FR-009]
-- [ ] T014 Implement `src/app/api/courses/route.ts` + `src/app/api/topics/route.ts` + `src/app/api/topics/[id]/route.ts` with zod validation → T013 green
-- [ ] T015 Write failing a11y component test `tests/a11y/shell.test.tsx` (vitest-axe, focus management), then implement app shell: `src/app/layout.tsx` (mobile-first), `src/components/BottomTabs.tsx`, `src/app/unlock/page.tsx` [FR-028]
+- [X] T008 Drizzle client `src/lib/db/index.ts` + `drizzle.config.ts` + migration 0001 (`CREATE EXTENSION IF NOT EXISTS vector`) — generated as `drizzle/0000_create_vector_extension.sql` via `drizzle-kit generate --custom` (drizzle-kit's own numbering is 0-indexed); `tests/helpers/pglite.ts` extended with `createTestDb()` (Drizzle + migrations applied against PGlite)
+- [X] T009 `courses` + `topics` schema in `src/lib/db/schema.ts` + migration (UNIQUE `code`; UNIQUE `(course_id, name)`; cascades per data-model.md) — `drizzle/0001_courses_topics.sql`; verified `gen_random_uuid()` default, both UNIQUE constraints, and `ON DELETE CASCADE` all work against PGlite
+- [X] T010 [P] Write failing unit test `tests/unit/logging.test.ts` (event shape: boundary, engine?, failure_class?, expected_degradation, latency_ms), then implement structured JSON logger `src/lib/logging.ts` (Principle VIII)
+- [X] T011 Write failing integration tests `tests/integration/proxy.test.ts`: uncookied `GET /` → redirect `/unlock`; wrong passcode → 401; correct passcode → signed cookie + access; tampered cookie → redirect [FR-026]
+- [X] T012 Implement gate → T011 green: `src/proxy.ts` (named export `proxy` — `middleware.ts` is prohibited in this project since middleware is deprecated/renamed to proxy in Next 16, research.md R6), `src/app/api/unlock/route.ts`, `src/lib/auth.ts` (double-HMAC timing-safe compare + jose HS256 cookie, 30-day expiry)
+- [X] T013 Write failing integration tests `tests/integration/api/courses.test.ts`: GET/POST `/api/courses` (409 duplicate code), POST/PATCH/DELETE `/api/topics` [FR-009]
+- [X] T014 Implement `src/app/api/courses/route.ts` + `src/app/api/topics/route.ts` + `src/app/api/topics/[id]/route.ts` with zod validation → T013 green. `GET /api/courses` intentionally omits the FR-014 due-count rollup for now (flashcards/bank_questions don't exist until Phase 4) — deferred to T047
+- [X] T015 Write failing a11y component test `tests/a11y/shell.test.tsx` (vitest-axe, focus management), then implement app shell: `src/app/layout.tsx` (mobile-first, `lang="es"`), `src/components/BottomTabs.tsx`, `src/app/unlock/page.tsx` [FR-028]
 
 **Checkpoint**: Gate + DB + courses/topics ready — user stories can begin
 

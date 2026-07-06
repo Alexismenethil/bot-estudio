@@ -1,0 +1,9 @@
+.next
+out
+build
+coverage
+.stryker-tmp
+reports
+playwright-report
+test-results
+pnpm-lock.yaml

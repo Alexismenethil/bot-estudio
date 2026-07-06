@@ -1,0 +1,11 @@
+allowBuilds:
+  '@google/genai': true
+  esbuild: true
+  msw: true
+  onnxruntime-node: true
+  protobufjs: true
+  sharp: true
+  unrs-resolver: true
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver
