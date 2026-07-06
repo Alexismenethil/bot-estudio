@@ -259,3 +259,49 @@ export const examSessions = pgTable(
     ),
   ],
 );
+
+// feynman_submissions / ai_evaluations (US5; FR-022-FR-025, FR-030) — data-model.md
+export const feynmanSubmissions = pgTable(
+  "feynman_submissions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    topicId: uuid("topic_id")
+      .notNull()
+      .references(() => topics.id, { onDelete: "cascade" }),
+    explanation: text("explanation").notNull(),
+    status: text("status").notNull().default("submitted"),
+    failureClasses: jsonb("failure_classes"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    check(
+      "feynman_submissions_explanation_length_check",
+      sql`length(trim(${table.explanation})) > 0 and length(${table.explanation}) <= 20000`,
+    ),
+    check(
+      "feynman_submissions_status_check",
+      sql`${table.status} in ('submitted','pending_retry','evaluated')`,
+    ),
+  ],
+);
+
+export const aiEvaluations = pgTable(
+  "ai_evaluations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    submissionId: uuid("submission_id")
+      .notNull()
+      .references(() => feynmanSubmissions.id, { onDelete: "cascade" }),
+    engine: text("engine").notNull(),
+    correctPoints: jsonb("correct_points").notNull(),
+    missingPoints: jsonb("missing_points").notNull(),
+    wrongPoints: jsonb("wrong_points").notNull(),
+    reviewSuggestions: jsonb("review_suggestions").notNull(),
+    citations: jsonb("citations"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    check("ai_evaluations_engine_check", sql`${table.engine} in ('gemini','local')`),
+  ],
+);
