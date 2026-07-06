@@ -126,12 +126,12 @@ Single Next.js 16 project at repo root: `src/app` (routes + API), `src/lib` (pur
 
 ### Tests & Implementation for User Story 3 (MANDATORY per constitution Principle I) ⚠️
 
-- [ ] T050 [P] [US3] Write failing integration tests `tests/integration/api/bank-questions.test.ts`: CRUD with prompt/correctAnswer/explanation [FR-031, US3-AC1]
-- [ ] T051 [US3] Implement `src/app/api/bank-questions/route.ts` + `[id]/route.ts` → T050 green
-- [ ] T052 [US3] Write failing integration tests `tests/integration/api/trainer.test.ts`: POST sessions → frozen `question_ids` draw, 422 on empty bank (spec edge case) [FR-015, FR-016, US3-AC2]; GET resume at `current_index` [FR-029]; POST answers → `{isCorrect, explanation, review.scheduleChanged}` — incorrect → SM-2 override, correct → no-op [FR-017, FR-018, US3-AC4, US3-AC5]
-- [ ] T053 [US3] Implement `trainer_sessions` + `session_answers` schema + migration + `src/app/api/trainer/sessions/*` routes + `src/lib/session/trainer.ts` → T052 green
-- [ ] T054 [US3] Write failing a11y/component tests `tests/a11y/trainer.test.tsx`, then implement Trainer UI `src/app/trainer/*`: no timer [US3-AC3], feedback + explanation before advancing [US3-AC4], bank-question authoring screens [FR-031, FR-028]; include an empty-state view for a topic with no bank questions yet, distinct from the API's 422 (spec Edge Cases)
-- [ ] T055 [US3] Playwright `e2e/us3-trainer.spec.ts`: quickstart scenario 3
+- [X] T050 [P] [US3] Write failing integration tests `tests/integration/api/bank-questions.test.ts`: CRUD with prompt/correctAnswer/explanation [FR-031, US3-AC1]
+- [X] T051 [US3] Implement `src/app/api/bank-questions/route.ts` + `[id]/route.ts` → T050 green
+- [X] T052 [US3] Write failing integration tests `tests/integration/api/trainer.test.ts`: POST sessions → frozen `question_ids` draw, 422 on empty bank (spec edge case) [FR-015, FR-016, US3-AC2]; GET resume at `current_index` [FR-029]; POST answers → `{isCorrect, explanation, review.scheduleChanged}` — incorrect → SM-2 override, correct → no-op [FR-017, FR-018, US3-AC4, US3-AC5]
+- [X] T053 [US3] Implement `trainer_sessions` + `session_answers` schema + migration + `src/app/api/trainer/sessions/*` routes + `src/lib/session/trainer.ts` → T052 green
+- [X] T054 [US3] Write failing a11y/component tests `tests/a11y/trainer.test.tsx`, then implement Trainer UI `src/app/trainer/*`: no timer [US3-AC3], feedback + explanation before advancing [US3-AC4], bank-question authoring screens [FR-031, FR-028]; include an empty-state view for a topic with no bank questions yet, distinct from the API's 422 (spec Edge Cases)
+- [X] T055 [US3] Playwright `e2e/us3-trainer.spec.ts`: quickstart scenario 3
 
 **Checkpoint**: US1–US3 independently functional
 

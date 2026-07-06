@@ -188,3 +188,45 @@ export const reviewLogs = pgTable(
     check("review_logs_outcome_check", sql`${table.outcome} in ('correct','incorrect','hard')`),
   ],
 );
+
+// trainer_sessions / session_answers (US3; FR-015-FR-018, FR-029, FR-031) — data-model.md
+export const trainerSessions = pgTable(
+  "trainer_sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    scopeType: text("scope_type").notNull(),
+    scopeId: uuid("scope_id").notNull(),
+    questionIds: uuid("question_ids").array().notNull(),
+    currentIndex: integer("current_index").notNull().default(0),
+    status: text("status").notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    check("trainer_sessions_scope_type_check", sql`${table.scopeType} in ('topic','course')`),
+    check("trainer_sessions_current_index_check", sql`${table.currentIndex} >= 0`),
+    check("trainer_sessions_status_check", sql`${table.status} in ('active','finished')`),
+  ],
+);
+
+export const sessionAnswers = pgTable(
+  "session_answers",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sessionKind: text("session_kind").notNull(),
+    sessionId: uuid("session_id").notNull(),
+    questionId: uuid("question_id")
+      .notNull()
+      .references(() => bankQuestions.id, { onDelete: "cascade" }),
+    givenAnswer: text("given_answer").notNull(),
+    isCorrect: boolean("is_correct").notNull(),
+    answeredAt: timestamp("answered_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique("session_answers_kind_session_question_unique").on(
+      table.sessionKind,
+      table.sessionId,
+      table.questionId,
+    ),
+    check("session_answers_session_kind_check", sql`${table.sessionKind} in ('trainer','exam')`),
+  ],
+);
