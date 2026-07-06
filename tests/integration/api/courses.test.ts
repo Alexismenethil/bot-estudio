@@ -62,14 +62,23 @@ describe("GET/POST /api/courses [FR-009]", () => {
       explanation: "explanation",
       nextReviewAt: "2026-07-10",
     });
+    await db.insert(bankQuestions).values({
+      topicId: topic.id,
+      prompt: "due today",
+      correctAnswer: "answer",
+      explanation: "explanation",
+      nextReviewAt: "2026-07-06",
+    });
 
     const response = await getCourses(new Request("https://example.com/api/courses?today=2026-07-06"));
     const list = await response.json();
     const rolled = list.find((item: { id: string }) => item.id === course.id);
 
-    expect(rolled.dueToday).toBe(1);
-    expect(rolled.dueWeek).toBe(2);
-    expect(rolled.dueByType).toEqual({ flashcard: 1, bankQuestion: 1 });
+    expect(rolled.dueToday).toBe(2);
+    expect(rolled.dueWeek).toBe(3);
+    expect(rolled.dueTodayByType).toEqual({ flashcard: 1, bankQuestion: 1 });
+    expect(rolled.dueWeekByType).toEqual({ flashcard: 1, bankQuestion: 2 });
+    expect(rolled.dueByType).toEqual({ flashcard: 1, bankQuestion: 2 });
   });
 });
 

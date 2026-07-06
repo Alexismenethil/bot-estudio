@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { topics } from "@/lib/db/schema";
 import { createTopicSchema } from "@/lib/validation/topics";
 import { isUniqueViolation } from "@/lib/db/errors";
+
+export async function GET(request: Request) {
+  const courseId = new URL(request.url).searchParams.get("courseId");
+  const query = db.select().from(topics);
+  const rows = courseId ? await query.where(eq(topics.courseId, courseId)) : await query;
+  return NextResponse.json(rows);
+}
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);

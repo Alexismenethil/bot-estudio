@@ -24,6 +24,14 @@ export async function GET(request?: Request) {
       ...course,
       dueToday: todayCourse?.dueCount ?? 0,
       dueWeek: weekCourse?.dueCount ?? 0,
+      dueTodayByType: {
+        flashcard: todayCourse?.flashcards ?? 0,
+        bankQuestion: todayCourse?.bankQuestions ?? 0,
+      },
+      dueWeekByType: {
+        flashcard: weekCourse?.flashcards ?? 0,
+        bankQuestion: weekCourse?.bankQuestions ?? 0,
+      },
       dueByType: {
         flashcard: weekCourse?.flashcards ?? 0,
         bankQuestion: weekCourse?.bankQuestions ?? 0,
