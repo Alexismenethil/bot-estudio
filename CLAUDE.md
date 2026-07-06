@@ -13,7 +13,8 @@ university Software QA course. The testing rigor IS the graded deliverable.
 
 ## Stack (decided in plan/research — do not re-litigate)
 
-- Next.js 15 App Router + TypeScript strict, Tailwind 4, deployed on Vercel.
+- Next.js 16 App Router (`next` pinned `^16.2.10`) + TypeScript strict,
+  Tailwind 4, deployed on Vercel.
 - Neon Postgres + pgvector (384-dim, multilingual-e5-small) via Drizzle ORM;
   PDFs in Vercel Blob; pdfjs-dist for viewer + per-page extraction.
 - AI: Gemini (`@google/genai`, gemini-2.5-flash) primary; in-browser WebGPU
@@ -24,7 +25,10 @@ university Software QA course. The testing rigor IS the graded deliverable.
 - RAG: retrieval always (never whole-doc stuffing). Server pgvector top-k when
   backend reachable (even if Gemini down); IndexedDB chunk cache + client
   embedding for offline; page citations come from chunk `page_number` metadata.
-- Access: passcode middleware (signed HMAC cookie, jose + Web Crypto, Edge-safe).
+- Access: passcode gate in `src/proxy.ts` with named export `proxy` (signed HMAC
+  cookie, jose + Web Crypto). middleware is deprecated/renamed to proxy in
+  Next 16; this project prohibits `middleware.ts`, guarded by an integration
+  test asserting uncookied `/` redirects to `/unlock`.
 
 ## Testing (constitution-gated)
 

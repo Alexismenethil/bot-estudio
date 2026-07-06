@@ -11,10 +11,10 @@
 Single-user, mobile-first study web app with five independently deliverable stories:
 PDF Library with a page-citing RAG assistant (P1), SM-2 spaced-repetition engine over
 Flashcards and Bank Questions (P2), untimed Trainer (P3), timed Exam simulator (P4),
-and Feynman-mode AI evaluation (P5). Technical approach: one Next.js (App Router,
+and Feynman-mode AI evaluation (P5). Technical approach: one Next.js 16 (App Router,
 TypeScript) app on Vercel; Postgres (Neon) + pgvector as the central store and RAG
 index; Gemini as primary AI with an in-browser WebGPU model (transformers.js) as
-automatic fallback; a passcode middleware gate instead of user accounts. Business
+automatic fallback; a passcode gate in `src/proxy.ts` instead of user accounts. Business
 logic (SM-2, exam scoring, Feynman evaluation parsing) lives in pure TypeScript
 modules that are TDD'd, mutation-tested (Stryker ≥80%), and property-tested
 (fast-check) per the constitution.
@@ -23,7 +23,9 @@ modules that are TDD'd, mutation-tested (Stryker ≥80%), and property-tested
 
 **Language/Version**: TypeScript 5.x (strict), Node.js 20+ runtime on Vercel; browser ES2022
 
-**Primary Dependencies**: Next.js 15 (App Router), Tailwind CSS 4, Drizzle ORM +
+**Primary Dependencies**: Next.js 16 (App Router; `next` pinned to `^16.2.10` in
+`package.json` at scaffold time — the access gate depends on Next 16's `proxy.ts`
+convention), Tailwind CSS 4, Drizzle ORM +
 `@neondatabase/serverless`, `@google/genai` (Gemini API), `@huggingface/transformers`
 (transformers.js v4, WebGPU) for the local fallback LLM and client/server embeddings,
 `pdfjs-dist` (viewer + per-page text extraction), `@vercel/blob` (PDF file storage),
@@ -115,7 +117,7 @@ src/
 │   ├── exam/                     # US4: timed exam + report
 │   ├── feynman/                  # US5: explanation + evaluation
 │   └── api/                      # Route handlers (see contracts/api.md)
-├── middleware.ts                 # Passcode gate: signed-cookie check on every route
+├── proxy.ts                      # Passcode gate (Next 16): named export `proxy`, signed-cookie check on every route. middleware.ts is prohibited in this project (middleware is deprecated/renamed to proxy in Next 16); guarded by an integration test verifying uncookied requests redirect to /unlock
 ├── components/                   # Shared UI (accessible primitives, tabs, timers)
 ├── lib/
 │   ├── engine/                   # SM-2 pure logic  ← Stryker + fast-check

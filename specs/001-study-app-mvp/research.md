@@ -143,25 +143,35 @@ FR-005 page citations exact by construction.
 extraction is more mature in pdf.js); storing PDFs as bytea in Postgres (rejected —
 50 MB binaries don't belong in Neon rows; Blob is the platform-native store).
 
-## R6. Passcode gate in middleware
+## R6. Passcode gate in `proxy.ts` (Next 16)
 
-**Decision**: `middleware.ts` matches every route except `/unlock` and static
+**Decision**: Target Next.js 16 (`next` pinned `^16.2.10` in `package.json`). The
+gate lives in `src/proxy.ts` with the named export `proxy` — Next 16's replacement
+for the middleware convention — matching every route except `/unlock` and static
 assets. `/api/unlock` verifies the submitted passcode against `APP_PASSCODE` (env)
-using a double-HMAC timing-safe comparison (Web Crypto `SubtleCrypto`, Edge-runtime
-compatible — no Node `crypto.timingSafeEqual` on Edge), then sets an HttpOnly,
-Secure, SameSite=Lax cookie containing an HMAC-SHA256-signed token (via `jose`,
-`HS256`, secret from `SESSION_SECRET` env, 30-day expiry). Middleware verifies the
-signature on each request; failure ⇒ redirect to `/unlock`.
+using a double-HMAC timing-safe comparison (Web Crypto `SubtleCrypto` — portable
+across runtimes, no dependency on Node `crypto.timingSafeEqual`), then sets an
+HttpOnly, Secure, SameSite=Lax cookie containing an HMAC-SHA256-signed token (via
+`jose`, `HS256`, secret from `SESSION_SECRET` env, 30-day expiry). `proxy` verifies
+the signature on each request; failure ⇒ redirect to `/unlock`.
 
-**Rationale**: Satisfies FR-026 (a lock, not accounts) with zero DB state; `jose` +
-Web Crypto is the documented Edge-safe pattern (Node `crypto` is unavailable in
-middleware); double-HMAC comparison sidesteps the missing `timingSafeEqual` without
+**Rationale**: Satisfies FR-026 (a lock, not accounts) with zero DB state. The
+file/export naming is load-bearing, not cosmetic: **middleware is
+deprecated/renamed to proxy in Next 16, so this project standardizes on
+`proxy.ts`/`proxy` and prohibits `middleware.ts` outright.** The prohibition is
+protected by an integration test that asserts an uncookied request to `/`
+redirects to `/unlock` — any gate regression (wrong file name, wrong export, or a
+future convention change) fails the suite rather than shipping. `jose`
++ Web Crypto keeps the crypto identical regardless of the runtime the proxy
+executes on; double-HMAC comparison sidesteps the missing `timingSafeEqual` without
 hand-rolling constant-time logic.
 
-**Alternatives considered**: Basic Auth (rejected — poor mobile UX, no logout/expiry
-control); NextAuth/Auth.js (rejected — an account system the spec explicitly
-excludes); storing the raw passcode in the cookie (rejected — signature-verified
-token means the secret never round-trips).
+**Alternatives considered**: Staying on Next 15 with `middleware.ts` (rejected —
+project starts fresh; adopting the deprecated convention now guarantees a risky
+rename later); Basic Auth (rejected — poor mobile UX, no logout/expiry control);
+NextAuth/Auth.js (rejected — an account system the spec explicitly excludes);
+storing the raw passcode in the cookie (rejected — signature-verified token means
+the secret never round-trips).
 
 ## R7. Data access: Drizzle ORM on Neon
 

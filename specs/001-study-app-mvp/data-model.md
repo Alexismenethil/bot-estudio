@@ -42,7 +42,7 @@ State transitions: `processing → ready` (chunks embedded) · `processing → f
 |---|---|---|
 | id | uuid | PK |
 | document_id | uuid | FK → documents, NOT NULL, ON DELETE CASCADE |
-| page_number | integer | NOT NULL, ≥ 1, ≤ documents.page_count — the citation source of truth |
+| page_number | integer | NOT NULL, CHECK ≥ 1 — the citation source of truth. Upper bound (`≤ documents.page_count`) is NOT a DB CHECK (Postgres cannot reference another table in a CHECK constraint); it is enforced in the application layer by the single write path (`POST /api/documents` ingestion, zod-validated against the just-created document's `page_count`) |
 | chunk_index | integer | NOT NULL; UNIQUE (document_id, chunk_index) |
 | content | text | NOT NULL — page-aware chunk (~400 tokens, never spans pages) |
 | embedding | vector(384) | NOT NULL — multilingual-e5-small (R3) |
@@ -132,7 +132,13 @@ UNIQUE (session_kind, session_id, question_id) — one answer per question per s
 | id | uuid | PK |
 | topic_id | uuid | FK → topics, NOT NULL |
 | explanation | text | NOT NULL, non-empty (edge case: empty submission rejected at validation) |
-| status | text | NOT NULL, CHECK in ('pending_retry','evaluated') — 'pending_retry' = both engines failed, text preserved (FR-030, US5-AC5) |
+| status | text | NOT NULL, CHECK in ('submitted','pending_retry','evaluated'), default 'submitted' |
+
+State transitions: `submitted` (initial — student sent it, no evaluation attempt has
+concluded yet) → `evaluated` (either engine produced a persisted `ai_evaluations`
+row) · `submitted → pending_retry` (both engines failed; text preserved for retry —
+FR-030, US5-AC5, set via `PATCH …/retry-state`) · `pending_retry → evaluated`
+(a later retry succeeded). No other transitions; `evaluated` is terminal.
 
 ### ai_evaluations  *(US5; FR-023, FR-024, FR-025)*
 | Column | Type | Constraints |

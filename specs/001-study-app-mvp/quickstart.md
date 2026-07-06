@@ -26,9 +26,12 @@ BLOB_READ_WRITE_TOKEN=...            # Vercel Blob
 ## Setup & run
 
 ```bash
-pnpm install
+pnpm install           # package.json MUST pin "next": "^16.2.10" — the passcode
+                       # gate uses Next 16's proxy.ts convention (middleware is
+                       # deprecated/renamed to proxy in Next 16; middleware.ts is
+                       # prohibited in this project; see research.md R6)
 pnpm db:migrate        # drizzle-kit: migration 0001 runs CREATE EXTENSION vector
-pnpm dev               # http://localhost:3000 → redirects to /unlock
+pnpm dev               # http://localhost:3000 → redirects to /unlock (proxy.ts gate)
 ```
 
 ## Test commands (constitution gates)

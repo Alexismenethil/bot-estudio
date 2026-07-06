@@ -3,7 +3,7 @@
 **Feature**: `001-study-app-mvp` | **Date**: 2026-07-05
 
 All routes live under `src/app/api/**` and require the signed passcode cookie
-(middleware) except `POST /api/unlock`. Errors use `{ error: { code, message } }`
+(enforced by the `src/proxy.ts` gate — Next 16) except `POST /api/unlock`. Errors use `{ error: { code, message } }`
 with appropriate HTTP status; all mutating routes validate bodies with zod schemas
 shared with the client. Structured log event per request at the DB/AI boundaries
 (Principle VIII).
@@ -64,10 +64,31 @@ shared with the client. Structured log event per request at the DB/AI boundaries
 
 | Route | Req | Res |
 |---|---|---|
-| `POST /api/feynman/submissions` | `{ topicId, explanation }` | `Submission` · 422 empty/oversize (edge case) |
-| `POST /api/feynman/submissions/:id/evaluate` | — | `{ evaluation, engine:'gemini' } \| 502 { failureClass }` — server path retrieves topic-doc chunks (FR-024) + Gemini structured output; on 502 client runs local engine and persists via the route below (FR-008) |
-| `POST /api/feynman/submissions/:id/evaluations` | `{ engine:'local', evaluation }` | `201` — persists client-side local result; submission `status` stays `pending_retry` only when both engines failed (FR-030, US5-AC5) |
-| `GET /api/feynman/submissions/:id` | — | submission + evaluations with engine tags (FR-025) |
+| `POST /api/feynman/submissions` | `{ topicId, explanation }` | `Submission` (status `submitted`) · 422 empty/oversize (edge case) |
+| `POST /api/feynman/submissions/:id/evaluate` | — | `{ evaluation, engine:'gemini' } \| 502 { failureClass }` — server path retrieves topic-doc chunks (FR-024) + Gemini structured output; success sets status `evaluated`; on 502 client runs local engine and persists via the route below (FR-008) |
+| `POST /api/feynman/retrieve` | `{ submissionId }` | `{ chunks: [{ chunkId, documentId, pageNumber, content }] }` — Scenario A mirror of `POST /api/assistant/retrieve` (R1-A): pgvector top-k across ALL documents of the submission's topic (hence `documentId` per chunk, unlike the single-document assistant), embedding the explanation text server-side with no Gemini involvement, so the client-side local engine can ground its evaluation and cite `{documentId, page}` (FR-024). `{ chunks: [] }` when the topic has no `ready` documents (evaluation proceeds ungrounded, citations omitted) |
+| `POST /api/feynman/submissions/:id/evaluations` | `{ engine:'local', evaluation }` | `201` — persists client-side local result and sets submission status `evaluated` |
+| `PATCH /api/feynman/submissions/:id/retry-state` | `{ status:'pending_retry', failureClasses: { gemini: FailureClass, local: FailureClass } }` | `200 Submission` — the executable FR-030 path for P5: client calls it after BOTH engines fail, marking the preserved explanation for later retry (US5-AC5). Idempotent; rejected with 409 if the submission is already `evaluated`. Failure classes land in the structured log (Principle VIII) |
+| `GET /api/feynman/submissions/:id` | — | submission (incl. status) + evaluations with engine tags (FR-025) |
+
+Feynman Scenario B (no backend connectivity): `POST /api/feynman/retrieve` is
+unreachable by definition; the client reuses the same IndexedDB chunk cache as the
+assistant (R1-B) for whichever of the topic's documents were previously opened,
+embedding the explanation client-side. Grounding rules are strict:
+
+- **Topic has `ready` documents but the cache is absent or insufficient** (no
+  cached chunks for any of them, or client embedding unavailable): this is a
+  **local retrieval failure** — the evaluation MUST NOT proceed ungrounded, because
+  FR-024 requires document-referenced evaluation whenever the topic has documents.
+  The client shows the FR-030 "temporarily unavailable" message, preserves the
+  explanation, and queues the `retry-state` PATCH for when connectivity returns.
+- **Topic has no `ready` documents at all**: ungrounded evaluation is valid
+  (citations omitted) — this is the only case where the local engine may evaluate
+  without retrieval, mirroring `{ chunks: [] }` on the Scenario A route.
+- If the local engine itself fails in either case, same FR-030 path with queued
+  `retry-state`. The submission text always survives: it lives server-side from
+  `POST /api/feynman/submissions` or, if that call never succeeded, in client
+  storage until it can be submitted (FR-030's "never lost" guarantee).
 
 ## Contract-level guarantees
 
