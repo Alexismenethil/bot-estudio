@@ -46,6 +46,9 @@ async function mockUs3Api(page: Page) {
       repetitions: 3,
     },
   ];
+  let sessionQuestionIds: string[] = [];
+  let currentIndex = 0;
+  let status: "active" | "finished" = "active";
 
   await page.route("**/api/topics", async (route) => {
     await route.fulfill({ json: [topic] });
@@ -79,15 +82,18 @@ async function mockUs3Api(page: Page) {
       return;
     }
 
+    sessionQuestionIds = questions.map((question) => question.id);
+    currentIndex = 0;
+    status = "active";
     await route.fulfill({
       status: 201,
       json: {
         id: "55555555-5555-4555-8555-555555555555",
         scopeType: "topic",
         scopeId: topic.id,
-        questionIds: [questions[0].id],
-        currentIndex: 0,
-        status: "active",
+        questionIds: sessionQuestionIds,
+        currentIndex,
+        status,
       },
     });
   });
@@ -105,6 +111,10 @@ async function mockUs3Api(page: Page) {
       question.easeFactor = 2.2;
     }
 
+    const questionIndex = sessionQuestionIds.indexOf(question.id);
+    currentIndex = Math.max(currentIndex, questionIndex + 1);
+    status = currentIndex >= sessionQuestionIds.length ? "finished" : "active";
+
     await route.fulfill({
       json: {
         isCorrect,
@@ -118,6 +128,19 @@ async function mockUs3Api(page: Page) {
             repetitions: question.repetitions,
           },
         },
+      },
+    });
+  });
+
+  await page.route("**/api/trainer/sessions/*", async (route) => {
+    await route.fulfill({
+      json: {
+        id: "55555555-5555-4555-8555-555555555555",
+        scopeType: "topic",
+        scopeId: topic.id,
+        questionIds: sessionQuestionIds,
+        currentIndex,
+        status,
       },
     });
   });
@@ -203,5 +226,31 @@ test.describe("US3 trainer flow [T055]", () => {
     await page.goto("/?today=2026-07-07");
     await expect(page.getByLabel(/total vencido: 1/i)).toBeVisible();
     await expect(page.getByLabel(/bank questions: 1/i)).toBeVisible();
+  });
+
+  test("resumes an in-progress trainer session at the same question after reload [FR-029]", async ({
+    page,
+  }) => {
+    await page.goto("/trainer");
+
+    await page.getByLabel(/enunciado/i).fill("Que hace el verde en TDD?");
+    await page.getByLabel(/respuesta correcta/i).fill("Implementa lo minimo.");
+    await page.getByLabel(/explicacion/i).fill("El verde satisface el test.");
+    await page.getByRole("button", { name: /crear pregunta/i }).click();
+    await expect(page.getByText("Que hace el verde en TDD?")).toBeVisible();
+
+    await page.getByRole("button", { name: /iniciar practica/i }).click();
+    await expect(page.getByText(/pregunta 1 de 2/i)).toBeVisible();
+
+    await page.getByLabel(/tu respuesta/i).fill("Que el comportamiento aun no existe.");
+    await page.getByRole("button", { name: /responder/i }).click();
+    await expect(page.getByText(/correcto/i)).toBeVisible();
+    await page.getByRole("button", { name: /continuar/i }).click();
+    await expect(page.getByText(/pregunta 2 de 2/i)).toBeVisible();
+
+    await page.reload();
+
+    await expect(page.getByText(/pregunta 2 de 2/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Que hace el verde en TDD?" })).toBeVisible();
   });
 });

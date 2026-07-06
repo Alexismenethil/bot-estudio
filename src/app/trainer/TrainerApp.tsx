@@ -55,6 +55,8 @@ const emptyDraft: QuestionDraft = {
   explanation: "",
 };
 
+const storageKey = "bot-estudio:active-trainer-session";
+
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -138,6 +140,36 @@ export function TrainerApp({
     };
   }, [initialQuestions, selectedTopicId]);
 
+  useEffect(() => {
+    if (initialSession || typeof window === "undefined") {
+      return;
+    }
+    const storage = window.localStorage;
+    if (typeof storage?.getItem !== "function") {
+      return;
+    }
+    const sessionId = storage.getItem(storageKey);
+    if (!sessionId) {
+      return;
+    }
+
+    let cancelled = false;
+    async function resumeSession() {
+      const response = await fetch(`/api/trainer/sessions/${sessionId}`).catch(() => null);
+      if (!response?.ok || cancelled) {
+        return;
+      }
+      const loaded = (await response.json()) as TrainerSession;
+      setSession(loaded);
+      setSelectedTopicId(loaded.scopeId);
+    }
+
+    void resumeSession();
+    return () => {
+      cancelled = true;
+    };
+  }, [initialSession]);
+
   const topicQuestions = useMemo(
     () => questions.filter((question) => questionMatchesTopic(question, selectedTopicId)),
     [questions, selectedTopicId],
@@ -212,6 +244,9 @@ export function TrainerApp({
 
     if (nextSession) {
       setSession(nextSession);
+      if (typeof window !== "undefined" && typeof window.localStorage?.setItem === "function") {
+        window.localStorage.setItem(storageKey, nextSession.id);
+      }
     }
   }
 
@@ -243,13 +278,17 @@ export function TrainerApp({
       return;
     }
     const nextIndex = session.currentIndex + 1;
+    const finished = nextIndex >= session.questionIds.length;
     setSession({
       ...session,
       currentIndex: nextIndex,
-      status: nextIndex >= session.questionIds.length ? "finished" : "active",
+      status: finished ? "finished" : "active",
     });
     setGivenAnswer("");
     setFeedback(null);
+    if (finished && typeof window !== "undefined" && typeof window.localStorage?.removeItem === "function") {
+      window.localStorage.removeItem(storageKey);
+    }
   }
 
   const sessionFinished = session?.status === "finished" || Boolean(session && !currentQuestion);
@@ -271,6 +310,9 @@ export function TrainerApp({
                 setSelectedTopicId(event.target.value);
                 setSession(undefined);
                 setFeedback(null);
+                if (typeof window !== "undefined" && typeof window.localStorage?.removeItem === "function") {
+                  window.localStorage.removeItem(storageKey);
+                }
               }}
               className="mt-2 w-full rounded-[8px] border border-slate-300 bg-white px-3 py-2"
             >

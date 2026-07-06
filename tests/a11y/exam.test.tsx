@@ -112,4 +112,21 @@ describe("US4 Exam UI [FR-019, FR-020, FR-021, FR-028, FR-029, US4-AC2..6]", () 
     expect(screen.getByText(questions[1].prompt)).toBeInTheDocument();
     expect(screen.getByText(/repaso prioritario/i)).toBeInTheDocument();
   });
+
+  it("lets a student return to the configuration form to start a new exam", () => {
+    render(
+      <ExamApp
+        initialTopics={[topic]}
+        initialQuestions={questions}
+        initialSession={{ ...activeSession, status: "finished", remainingMs: 0 }}
+        initialReport={report}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /configurar nuevo examen/i }));
+
+    expect(screen.getByRole("heading", { name: /simulador de examen/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /iniciar examen/i })).toBeEnabled();
+    expect(screen.queryByRole("heading", { name: /reporte de examen/i })).not.toBeInTheDocument();
+  });
 });

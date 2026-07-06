@@ -231,5 +231,12 @@ describe("POST /api/exam/sessions/:id/finalize [FR-018, FR-021, US4-AC3, US4-AC4
       .where(and(eq(reviewLogs.itemId, failed.id), eq(reviewLogs.context, "exam")));
     expect(logs).toHaveLength(1);
     expect(logs[0]).toMatchObject({ outcome: "incorrect", scheduleChanged: true });
+
+    const correctLogs = await db
+      .select()
+      .from(reviewLogs)
+      .where(and(eq(reviewLogs.itemId, correct.id), eq(reviewLogs.context, "exam")));
+    expect(correctLogs).toHaveLength(1);
+    expect(correctLogs[0]).toMatchObject({ outcome: "correct", scheduleChanged: false });
   });
 });

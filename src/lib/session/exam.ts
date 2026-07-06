@@ -170,17 +170,14 @@ export async function finalizeExamSession(database: Database, sessionId: string,
     })
     .where(eq(examSessions.id, session.id));
 
-  const failedQuestions = report.failed.length
-    ? await database
-        .select()
-        .from(bankQuestions)
-        .where(inArray(bankQuestions.id, report.failed.map((failed) => failed.questionId)))
-    : [];
+  const failedIds = new Set(report.failed.map((failed) => failed.questionId));
+  const drawnQuestions = await getSessionQuestionRows(database, session.questionIds);
   const reviewDate = todayIso(now);
 
-  for (const question of failedQuestions) {
+  for (const question of drawnQuestions) {
+    const outcome = failedIds.has(question.id) ? "incorrect" : "correct";
     const prevState = toReviewState(question);
-    const review = sm2Next(prevState, "incorrect", "exam", reviewDate);
+    const review = sm2Next(prevState, outcome, "exam", reviewDate);
     if (review.scheduleChanged) {
       await database
         .update(bankQuestions)
@@ -189,7 +186,7 @@ export async function finalizeExamSession(database: Database, sessionId: string,
           intervalDays: review.state.intervalDays,
           easeFactor: review.state.easeFactor,
           repetitions: review.state.repetitions,
-          lastOutcome: "incorrect",
+          lastOutcome: outcome,
         })
         .where(eq(bankQuestions.id, question.id));
     }
@@ -198,7 +195,7 @@ export async function finalizeExamSession(database: Database, sessionId: string,
       itemType: "bank_question",
       itemId: question.id,
       context: "exam",
-      outcome: "incorrect",
+      outcome,
       scheduleChanged: review.scheduleChanged,
       prevState,
       newState: review.state,

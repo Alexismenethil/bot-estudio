@@ -181,4 +181,33 @@ test.describe("US4 exam flow [T064]", () => {
     await expect(page.getByRole("heading", { name: /reporte de examen/i })).toBeVisible();
     await expect(page.getByLabel(/puntaje/i)).toHaveText("50%");
   });
+
+  test("lets a student start a new exam after finishing one [FR-019]", async ({ page }) => {
+    await page.goto("/exam");
+    await page.getByLabel(/duracion/i).fill("120");
+    await page.getByRole("button", { name: /iniciar examen/i }).click();
+
+    await page.getByLabel(/tu respuesta/i).fill(questions[0].correctAnswer);
+    await page.getByRole("button", { name: /guardar respuesta/i }).click();
+    await expect(page.getByText(questions[1].prompt)).toBeVisible();
+    await page.getByLabel(/tu respuesta/i).fill(questions[1].correctAnswer);
+    await page.getByRole("button", { name: /guardar respuesta/i }).click();
+
+    await page.getByRole("button", { name: /finalizar ahora/i }).click();
+    await expect(page.getByRole("heading", { name: /reporte de examen/i })).toBeVisible();
+
+    await page.getByRole("button", { name: /configurar nuevo examen/i }).click();
+    await expect(page.getByRole("heading", { name: /simulador de examen/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /iniciar examen/i })).toBeEnabled();
+
+    await page.getByLabel(/duracion/i).fill("120");
+    await page.getByRole("button", { name: /iniciar examen/i }).click();
+    await expect(page.getByLabel(/tiempo restante/i)).toBeVisible();
+    await expect(page.getByText(questions[0].prompt)).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByLabel(/tiempo restante/i)).toBeVisible();
+    await expect(page.getByText(questions[0].prompt)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /reporte de examen/i })).not.toBeVisible();
+  });
 });

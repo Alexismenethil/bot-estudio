@@ -200,6 +200,18 @@ export function ExamApp({
     setFinalizing(false);
   }, [finalizing, onFinalize, report, session]);
 
+  function startNewExam() {
+    setReport(undefined);
+    setSession(undefined);
+    setAnswers([]);
+    setAnswerText("");
+    setRemaining(0);
+    setError("");
+    if (typeof window !== "undefined" && typeof window.localStorage?.removeItem === "function") {
+      window.localStorage.removeItem(storageKey);
+    }
+  }
+
   useEffect(() => {
     if (!session || session.status !== "active" || report) {
       return;
@@ -305,6 +317,13 @@ export function ExamApp({
               </ul>
             )}
           </section>
+          <button
+            type="button"
+            onClick={startNewExam}
+            className="mt-6 rounded-full bg-blue-600 px-4 py-3 text-sm font-semibold text-white"
+          >
+            Configurar nuevo examen
+          </button>
         </section>
       </main>
     );
