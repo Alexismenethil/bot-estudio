@@ -1,5 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const e2ePort = Number(process.env.PLAYWRIGHT_PORT ?? 3100);
+const baseURL = `http://localhost:${e2ePort}`;
+
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
@@ -7,7 +10,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: "html",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL,
     trace: "on-first-retry",
   },
   // Mobile-first constitution requirement (Principle VI): the primary project
@@ -17,8 +20,13 @@ export default defineConfig({
     { name: "desktop-chromium", use: { ...devices["Desktop Chrome"] } },
   ],
   webServer: {
-    command: "pnpm dev",
-    url: "http://localhost:3000",
+    command: `pnpm exec next dev -p ${e2ePort}`,
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
+    env: {
+      ...process.env,
+      APP_PASSCODE: process.env.APP_PASSCODE ?? "test-passcode",
+      SESSION_SECRET: process.env.SESSION_SECRET ?? "a".repeat(32),
+    },
   },
 });
