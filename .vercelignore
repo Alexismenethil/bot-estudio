@@ -1,0 +1,7 @@
+.next
+.stryker-tmp
+coverage
+playwright-report
+reports
+test-results
+node_modules

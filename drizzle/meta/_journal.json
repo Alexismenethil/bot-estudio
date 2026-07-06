@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1783310447819,
+      "tag": "0000_create_vector_extension",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783311421736,
+      "tag": "0001_courses_topics",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783315978174,
+      "tag": "0002_documents_document_chunks",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783349147870,
+      "tag": "0003_assistant_threads_messages",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783354277041,
+      "tag": "0004_spaced_repetition",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783356642215,
+      "tag": "0005_trainer_sessions",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783358552408,
+      "tag": "0006_exam_sessions",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1783364495484,
+      "tag": "0007_feynman_submissions",
+      "breakpoints": true
+    }
+  ]
+}

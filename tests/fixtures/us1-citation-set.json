@@ -1,0 +1,36 @@
+{
+  "documentPages": [
+    { "pageNumber": 1, "content": "Introduccion a las pruebas de software: verificacion y validacion." },
+    { "pageNumber": 2, "content": "Pruebas unitarias: aislar una unidad de codigo y verificar su comportamiento." },
+    { "pageNumber": 3, "content": "Pruebas de integracion: verifican la interaccion entre modulos." },
+    { "pageNumber": 4, "content": "Pruebas de extremo a extremo (E2E): simulan el flujo completo del usuario." },
+    { "pageNumber": 5, "content": "Mutation testing: introduce mutantes en el codigo para medir la calidad de las pruebas." },
+    { "pageNumber": 6, "content": "Cobertura de codigo: mide que porcentaje del codigo fue ejecutado por las pruebas." },
+    { "pageNumber": 7, "content": "Test-Driven Development (TDD): escribir la prueba antes que el codigo." },
+    { "pageNumber": 8, "content": "Pruebas basadas en propiedades: generan entradas aleatorias para verificar invariantes." },
+    { "pageNumber": 9, "content": "Accesibilidad web WCAG 2.1: contraste de color, navegacion por teclado, lectores de pantalla." },
+    { "pageNumber": 10, "content": "Resiliencia ante fallos de IA: manejo de timeout, cuota agotada y falta de conectividad." }
+  ],
+  "questions": [
+    { "question": "¿Que verifica una prueba unitaria?", "answerable": true, "expectedPage": 2 },
+    { "question": "¿Que es una prueba de integracion?", "answerable": true, "expectedPage": 3 },
+    { "question": "¿Que simulan las pruebas E2E?", "answerable": true, "expectedPage": 4 },
+    { "question": "¿Que introduce el mutation testing en el codigo?", "answerable": true, "expectedPage": 5 },
+    { "question": "¿Que mide la cobertura de codigo?", "answerable": true, "expectedPage": 6 },
+    { "question": "¿Que se escribe primero en TDD?", "answerable": true, "expectedPage": 7 },
+    { "question": "¿Que generan las pruebas basadas en propiedades?", "answerable": true, "expectedPage": 8 },
+    { "question": "¿Que estandar de accesibilidad web se menciona?", "answerable": true, "expectedPage": 9 },
+    { "question": "¿Que tres fallos de IA debe manejar el sistema?", "answerable": true, "expectedPage": 10 },
+    { "question": "¿Que dos conceptos define la introduccion a las pruebas?", "answerable": true, "expectedPage": 1 },
+    { "question": "¿Como se aisla una unidad de codigo en las pruebas unitarias?", "answerable": true, "expectedPage": 2 },
+    { "question": "¿Que interaccion verifican las pruebas de integracion?", "answerable": true, "expectedPage": 3 },
+    { "question": "¿Que flujo completo simulan las pruebas E2E?", "answerable": true, "expectedPage": 4 },
+    { "question": "¿Que porcentaje mide la cobertura de codigo?", "answerable": true, "expectedPage": 6 },
+    { "question": "¿Cual es la capital de Francia?", "answerable": false, "expectedPage": null },
+    { "question": "¿Cuantos planetas tiene el sistema solar?", "answerable": false, "expectedPage": null },
+    { "question": "¿Quien escribio Cien anos de soledad?", "answerable": false, "expectedPage": null },
+    { "question": "¿Cual es la receta del pan de elote?", "answerable": false, "expectedPage": null },
+    { "question": "¿Que precio tiene un boleto de avion a Tokio?", "answerable": false, "expectedPage": null },
+    { "question": "¿Cual es el resultado del ultimo partido de futbol?", "answerable": false, "expectedPage": null }
+  ]
+}
