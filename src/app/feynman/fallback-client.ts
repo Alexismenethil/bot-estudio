@@ -2,6 +2,7 @@
 
 import { filterEvaluationCitations, normalizeEvaluation } from "@/lib/ai/feynman-eval";
 import { classifyLocalError } from "@/lib/ai/types";
+import { logEvent } from "@/lib/logging";
 import type { FeynmanEvaluation } from "@/lib/ai/feynman-eval";
 import type { GeminiFailureClass, LocalFailureClass } from "@/lib/ai/types";
 
@@ -42,6 +43,16 @@ async function queueUnavailable(
     gemini: input.geminiFailureClass,
     local,
   });
+  logEvent({
+    boundary: "ai",
+    level: "warn",
+    engine: "local",
+    failure_class: local,
+    message: "feynman local fallback unavailable",
+    expected_degradation: true,
+    submission_id: input.submissionId,
+    gemini_failure_class: input.geminiFailureClass,
+  });
   return { ok: false, state: "unavailable", retryQueued: true };
 }
 
@@ -65,6 +76,15 @@ export async function runFeynmanFallback(
 
     const groundedEvaluation = filterEvaluationCitations(normalized.evaluation, chunks);
     await deps.persistEvaluation(input.submissionId, groundedEvaluation);
+    logEvent({
+      boundary: "ai",
+      level: "warn",
+      engine: "local",
+      message: "feynman local fallback ok",
+      expected_degradation: true,
+      submission_id: input.submissionId,
+      gemini_failure_class: input.geminiFailureClass,
+    });
     return { ok: true, engine: "local", evaluation: groundedEvaluation };
   } catch (error) {
     return queueUnavailable(input, deps, classifyLocalError(error));

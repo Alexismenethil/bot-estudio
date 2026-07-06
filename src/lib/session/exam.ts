@@ -5,6 +5,7 @@ import { sm2Next, type ReviewState } from "@/lib/engine/sm2";
 import { gradeExam, type ExamAnswer, type GradedExam } from "@/lib/scoring/grade";
 import { isExpired, remainingMs } from "@/lib/scoring/timer";
 import { normalizeTrainerAnswer } from "@/lib/session/trainer";
+import { logEvent } from "@/lib/logging";
 
 type Database = typeof appDb;
 type ExamScopeType = "topic" | "course";
@@ -119,6 +120,17 @@ export async function createExamSession(
       startedAt: now,
     })
     .returning();
+  logEvent({
+    boundary: "db",
+    message: "exam session created",
+    operation: "insert",
+    table: "exam_sessions",
+    session_id: created?.id,
+    scope_type: input.scopeType,
+    scope_id: input.scopeId,
+    duration_seconds: input.durationSeconds,
+    question_count: questionIds.length,
+  });
   return {
     ...created,
     remainingMs: sessionRemainingMs(created, now),
@@ -169,6 +181,16 @@ export async function finalizeExamSession(database: Database, sessionId: string,
       correctCount: report.correctCount,
     })
     .where(eq(examSessions.id, session.id));
+  logEvent({
+    boundary: "timer",
+    message: "exam session finalized",
+    operation: "update",
+    table: "exam_sessions",
+    session_id: session.id,
+    finalized_at: now.toISOString(),
+    total_questions: report.totalQuestions,
+    correct_count: report.correctCount,
+  });
 
   const failedIds = new Set(report.failed.map((failed) => failed.questionId));
   const drawnQuestions = await getSessionQuestionRows(database, session.questionIds);
@@ -189,6 +211,15 @@ export async function finalizeExamSession(database: Database, sessionId: string,
           lastOutcome: outcome,
         })
         .where(eq(bankQuestions.id, question.id));
+      logEvent({
+        boundary: "db",
+        message: "exam bank question schedule updated",
+        operation: "update",
+        table: "bank_questions",
+        session_id: session.id,
+        question_id: question.id,
+        outcome,
+      });
     }
 
     await database.insert(reviewLogs).values({
@@ -199,6 +230,16 @@ export async function finalizeExamSession(database: Database, sessionId: string,
       scheduleChanged: review.scheduleChanged,
       prevState,
       newState: review.state,
+    });
+    logEvent({
+      boundary: "db",
+      message: "exam review log created",
+      operation: "insert",
+      table: "review_logs",
+      session_id: session.id,
+      question_id: question.id,
+      outcome,
+      schedule_changed: review.scheduleChanged,
     });
   }
 
@@ -212,6 +253,13 @@ export async function getExamSessionView(database: Database, sessionId: string, 
   }
 
   if (session.status === "active" && sessionIsExpired(session, now)) {
+    logEvent({
+      boundary: "timer",
+      message: "exam session observed expired",
+      session_id: session.id,
+      expected_degradation: false,
+      remaining_ms: 0,
+    });
     const report = await finalizeExamSession(database, session.id, now);
     const finalized = await getExamSessionRow(database, session.id);
     return {
@@ -262,6 +310,15 @@ export async function answerExamQuestion(
     questionId: question.id,
     givenAnswer: input.givenAnswer,
     isCorrect,
+  });
+  logEvent({
+    boundary: "db",
+    message: "exam answer created",
+    operation: "insert",
+    table: "session_answers",
+    session_id: session.id,
+    question_id: question.id,
+    is_correct: isCorrect,
   });
 
   return {

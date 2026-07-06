@@ -50,6 +50,15 @@ async function uploadPdf(page: import("@playwright/test").Page, testInfo: import
 }
 
 async function mockAssistantRoutes(page: import("@playwright/test").Page) {
+  await page.route("**/api/review/due**", async (route) => {
+    await route.fulfill({
+      json: {
+        items: [],
+        counts: { total: 0, byType: { flashcard: 0, bankQuestion: 0 }, byCourse: [], byTopic: [] },
+      },
+    });
+  });
+
   await page.route("**/api/documents/*/messages", async (route) => {
     if (route.request().method() === "GET") {
       await route.fulfill({ json: { messages: [] } });

@@ -40,8 +40,9 @@ pnpm dev               # http://localhost:3000 → redirects to /unlock (proxy.t
 pnpm test              # Vitest: unit + property + integration (TDD loop, Principle I)
 pnpm test:property     # fast-check suites only (Principle III)
 pnpm test:mutation     # Stryker vitest-runner; FAILS below 80% on engine/scoring/feynman-eval (Principle II)
-pnpm test:a11y         # Playwright + @axe-core/playwright sweep, all screens (SC-008, Principle VI)
+pnpm test:a11y         # Vitest + axe component accessibility tests (Principle VI)
 pnpm test:e2e          # Playwright user-story flows
+pnpm playwright test e2e/a11y-sweep.spec.ts  # seeded WCAG 2.1 A/AA sweep (SC-008)
 ```
 
 Definition of mergeable = all five green + traceability table updated (Principle IV) + manual a11y spot-check noted for Exam/Feynman screens.

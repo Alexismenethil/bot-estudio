@@ -92,7 +92,11 @@ export function LibraryApp({ initialDocument, initialMessages = [] }: LibraryApp
       <div className="mx-auto max-w-7xl">
         <div id={tabPanelId}>
           {canUseDocument ? (
-            <div className={assistantOpen ? "blur-sm" : undefined} aria-hidden={assistantOpen ? "true" : undefined}>
+            <div
+              className={assistantOpen ? "blur-sm" : undefined}
+              aria-hidden={assistantOpen ? "true" : undefined}
+              inert={assistantOpen ? true : undefined}
+            >
               <PdfViewer document={document} page={page} onPageChange={setPage} />
             </div>
           ) : (
@@ -146,12 +150,22 @@ export function LibraryApp({ initialDocument, initialMessages = [] }: LibraryApp
                 onClick={() => setActiveTab(tab.id)}
                 className={`min-h-12 rounded-full px-4 text-sm font-semibold transition sm:px-6 ${
                   selected
-                    ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100"
-                    : "text-slate-500 hover:bg-slate-50 disabled:opacity-35"
+                    ? "bg-blue-100 text-blue-950 ring-1 ring-blue-200"
+                    : "text-slate-800 hover:bg-slate-50 disabled:opacity-35"
                 }`}
               >
-                <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden">{tab.shortLabel}</span>
+                <span
+                  className="hidden sm:inline"
+                  style={{ color: "#020617", fontSize: "19px", fontWeight: 700, lineHeight: 1.2 }}
+                >
+                  {tab.label}
+                </span>
+                <span
+                  className="sm:hidden"
+                  style={{ color: "#020617", fontSize: "19px", fontWeight: 700, lineHeight: 1.2 }}
+                >
+                  {tab.shortLabel}
+                </span>
               </button>
             );
           })}

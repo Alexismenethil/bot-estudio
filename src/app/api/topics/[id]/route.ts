@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { topics } from "@/lib/db/schema";
 import { updateTopicSchema } from "@/lib/validation/topics";
 import { isUniqueViolation } from "@/lib/db/errors";
+import { logEvent } from "@/lib/logging";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -26,6 +27,13 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         { status: 404 },
       );
     }
+    logEvent({
+      boundary: "db",
+      message: "topic updated",
+      operation: "update",
+      table: "topics",
+      topic_id: updated.id,
+    });
     return NextResponse.json(updated);
   } catch (error) {
     if (isUniqueViolation(error)) {
@@ -46,5 +54,12 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 export async function DELETE(_request: Request, { params }: RouteContext) {
   const { id } = await params;
   await db.delete(topics).where(eq(topics.id, id));
+  logEvent({
+    boundary: "db",
+    message: "topic deleted",
+    operation: "delete",
+    table: "topics",
+    topic_id: id,
+  });
   return new NextResponse(null, { status: 204 });
 }

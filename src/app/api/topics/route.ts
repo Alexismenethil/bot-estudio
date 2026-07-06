@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { topics } from "@/lib/db/schema";
 import { createTopicSchema } from "@/lib/validation/topics";
 import { isUniqueViolation } from "@/lib/db/errors";
+import { logEvent } from "@/lib/logging";
 
 export async function GET(request: Request) {
   const courseId = new URL(request.url).searchParams.get("courseId");
@@ -24,6 +25,14 @@ export async function POST(request: Request) {
 
   try {
     const [created] = await db.insert(topics).values(parsed.data).returning();
+    logEvent({
+      boundary: "db",
+      message: "topic created",
+      operation: "insert",
+      table: "topics",
+      topic_id: created?.id,
+      course_id: created?.courseId,
+    });
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
     if (isUniqueViolation(error)) {

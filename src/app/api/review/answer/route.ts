@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { bankQuestions, flashcards, reviewLogs } from "@/lib/db/schema";
 import { sm2Next, type ReviewState } from "@/lib/engine/sm2";
 import { reviewAnswerSchema } from "@/lib/validation/review";
+import { logEvent } from "@/lib/logging";
 
 type ReviewItem = {
   id: string;
@@ -47,9 +48,27 @@ async function updateItem(
 
   if (itemType === "flashcard") {
     await db.update(flashcards).set(values).where(eq(flashcards.id, itemId));
+    logEvent({
+      boundary: "db",
+      message: "review item schedule updated",
+      operation: "update",
+      table: "flashcards",
+      item_type: itemType,
+      item_id: itemId,
+      outcome,
+    });
     return;
   }
   await db.update(bankQuestions).set(values).where(eq(bankQuestions.id, itemId));
+  logEvent({
+    boundary: "db",
+    message: "review item schedule updated",
+    operation: "update",
+    table: "bank_questions",
+    item_type: itemType,
+    item_id: itemId,
+    outcome,
+  });
 }
 
 export async function POST(request: Request) {
@@ -86,6 +105,17 @@ export async function POST(request: Request) {
     scheduleChanged: result.scheduleChanged,
     prevState,
     newState: result.state,
+  });
+  logEvent({
+    boundary: "db",
+    message: "review log created",
+    operation: "insert",
+    table: "review_logs",
+    item_type: itemType,
+    item_id: itemId,
+    context,
+    outcome,
+    schedule_changed: result.scheduleChanged,
   });
 
   return NextResponse.json(result);

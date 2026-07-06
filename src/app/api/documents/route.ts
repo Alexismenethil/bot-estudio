@@ -5,6 +5,7 @@ import { documents, documentChunks } from "@/lib/db/schema";
 import { createDocumentSchema } from "@/lib/validation/documents";
 import { chunkDocument } from "@/lib/rag/chunking";
 import { createTransformersEmbedder, embedTexts } from "@/lib/rag/embed";
+import { logEvent } from "@/lib/logging";
 
 const embedder = createTransformersEmbedder();
 
@@ -39,6 +40,15 @@ export async function POST(request: Request) {
     .insert(documents)
     .values({ topicId, title, blobUrl, pageCount, status: "processing" })
     .returning();
+  logEvent({
+    boundary: "db",
+    message: "document created",
+    operation: "insert",
+    table: "documents",
+    document_id: document.id,
+    topic_id: topicId,
+    page_count: pageCount,
+  });
 
   const chunks = chunkDocument(pages);
 
@@ -48,6 +58,14 @@ export async function POST(request: Request) {
       .set({ status: "failed" })
       .where(eq(documents.id, document.id))
       .returning();
+    logEvent({
+      boundary: "db",
+      message: "document marked failed",
+      operation: "update",
+      table: "documents",
+      document_id: failed.id,
+      reason: "empty_content",
+    });
     return NextResponse.json(
       {
         id: failed.id,
@@ -75,12 +93,27 @@ export async function POST(request: Request) {
       embedding: embeddings[i]!,
     })),
   );
+  logEvent({
+    boundary: "db",
+    message: "document chunks created",
+    operation: "insert",
+    table: "document_chunks",
+    document_id: document.id,
+    chunk_count: chunks.length,
+  });
 
   const [ready] = await db
     .update(documents)
     .set({ status: "ready" })
     .where(eq(documents.id, document.id))
     .returning();
+  logEvent({
+    boundary: "db",
+    message: "document marked ready",
+    operation: "update",
+    table: "documents",
+    document_id: ready.id,
+  });
 
   return NextResponse.json({ id: ready.id, status: ready.status }, { status: 202 });
 }

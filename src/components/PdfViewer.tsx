@@ -118,13 +118,13 @@ export function PdfViewer({
           <h1 className="truncate text-base font-semibold text-slate-700">{document.title}</h1>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 text-sm font-medium text-slate-400">
+        <div className="flex shrink-0 items-center gap-2 text-sm font-medium text-slate-700">
           <button
             type="button"
             aria-label="Pagina anterior"
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
-            className="grid size-9 place-items-center rounded-full border border-transparent text-slate-500 hover:border-slate-200 disabled:opacity-35"
+            className="grid size-9 place-items-center rounded-full border border-transparent text-slate-700 hover:border-slate-200 disabled:opacity-35"
           >
             &lt;
           </button>
@@ -134,7 +134,7 @@ export function PdfViewer({
             aria-label="Pagina siguiente"
             disabled={page === pageCount}
             onClick={() => setPage(page + 1)}
-            className="grid size-9 place-items-center rounded-full border border-transparent text-slate-500 hover:border-slate-200 disabled:opacity-35"
+            className="grid size-9 place-items-center rounded-full border border-transparent text-slate-700 hover:border-slate-200 disabled:opacity-35"
           >
             &gt;
           </button>
@@ -142,7 +142,7 @@ export function PdfViewer({
             type="button"
             aria-label="Reducir zoom"
             onClick={() => setZoom((value) => clamp(value - 10, 70, 150))}
-            className="grid size-9 place-items-center rounded-full border border-transparent text-slate-500 hover:border-slate-200"
+            className="grid size-9 place-items-center rounded-full border border-transparent text-slate-700 hover:border-slate-200"
           >
             -
           </button>
@@ -151,7 +151,7 @@ export function PdfViewer({
             type="button"
             aria-label="Aumentar zoom"
             onClick={() => setZoom((value) => clamp(value + 10, 70, 150))}
-            className="grid size-9 place-items-center rounded-full border border-transparent text-slate-500 hover:border-slate-200"
+            className="grid size-9 place-items-center rounded-full border border-transparent text-slate-700 hover:border-slate-200"
           >
             +
           </button>

@@ -184,16 +184,16 @@ Single Next.js 16 project at repo root: `src/app` (routes + API), `src/lib` (pur
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T075 [P] Seed + dev scripts: `scripts/seed.ts` (course IS-481, topic, sample cards/questions, PDF fixture, and the `tests/fixtures/us1-citation-set.json` source PDF used by T030/T038) and `scripts/timeshift.ts` (`db:timeshift`, dev-only) — mechanism: shifts the `next_review_at` (and, where relevant, `started_at`) columns backward by N days directly in the DB; no system-clock faking is needed since the SM-2 engine and timer math take `today`/`now` as injected parameters (contracts/engine.md)
-- [ ] T076 [P] Playwright a11y sweep `e2e/a11y-sweep.spec.ts`: every screen in seeded state, WCAG 2.1 A/AA, zero critical violations [SC-008, FR-028]
-- [ ] T077 Full Stryker run across all three scopes, confirm ≥ 80% each; record scores in `docs/quality-report.md` (Principle II evidence)
-- [ ] T078 [P] Traceability table `docs/traceability.md`: every AC (US1-AC1..8, US2-AC1..7, US3-AC1..5, US4-AC1..6, US5-AC1..5), FR-001..FR-031, SC-001..SC-008 → test `file::name` (Principle IV). Explicitly include: SC-002 → T030/T038, SC-003 → T040/T049, SC-005 → T064, the `today`-param contract → T046/T047, the Feynman 20,000-char bound → T065/T069
-- [ ] T079 Manual a11y spot-checks on Exam and Feynman screens (constitution Principle VI); record findings + fixes in `docs/quality-report.md`
-- [ ] T080 Observability audit: every I/O boundary (AI calls, DB writes, timer finalization) emits structured events; `expected_degradation` correctly separates fallback-by-design from defects; add any missing [Principle VIII]
-- [ ] T081 [P] `README.md`: setup, env vars, test commands, architecture summary (academic deliverable, constitution §Academic Deliverables)
-- [ ] T082 Run quickstart.md validation scenarios 1–5 end-to-end; fix anything that breaks
-- [ ] T083 Vercel deploy: project config + env vars; post-deploy smoke — passcode gate rejects/admits, data visible from a second device [FR-027]
-- [ ] T084 Run `/speckit-analyze` and resolve any spec/plan/tasks drift (constitution §Governance compliance review)
+- [X] T075 [P] Seed + dev scripts: `scripts/seed.ts` (course IS-481, topic, sample cards/questions, PDF fixture, and the `tests/fixtures/us1-citation-set.json` source PDF used by T030/T038) and `scripts/timeshift.ts` (`db:timeshift`, dev-only) — mechanism: shifts the `next_review_at` (and, where relevant, `started_at`) columns backward by N days directly in the DB; no system-clock faking is needed since the SM-2 engine and timer math take `today`/`now` as injected parameters (contracts/engine.md)
+- [X] T076 [P] Playwright a11y sweep `e2e/a11y-sweep.spec.ts`: every screen in seeded state, WCAG 2.1 A/AA, zero critical violations [SC-008, FR-028]
+- [X] T077 Full Stryker run across all three scopes, confirm ≥ 80% each; record scores in `docs/quality-report.md` (Principle II evidence — full configured scope 91.59%; engine 96.20%, scoring 94.74%, Feynman eval 87.16%)
+- [X] T078 [P] Traceability table `docs/traceability.md`: every AC (US1-AC1..8, US2-AC1..7, US3-AC1..5, US4-AC1..6, US5-AC1..5), FR-001..FR-031, SC-001..SC-008 → test `file::name` (Principle IV). Explicitly include: SC-002 → T030/T038, SC-003 → T040/T049, SC-005 → T064, the `today`-param contract → T046/T047, the Feynman 20,000-char bound → T065/T069
+- [X] T079 Manual a11y spot-checks on Exam and Feynman screens (constitution Principle VI); record findings + fixes in `docs/quality-report.md`
+- [X] T080 Observability audit: every I/O boundary (AI calls, DB writes, timer finalization) emits structured events; `expected_degradation` correctly separates fallback-by-design from defects; add any missing [Principle VIII]
+- [X] T081 [P] `README.md`: setup, env vars, test commands, architecture summary (academic deliverable, constitution §Academic Deliverables)
+- [X] T082 Run quickstart.md validation scenarios 1–5 end-to-end; fix anything that breaks
+- [ ] T083 Vercel deploy: project config + env vars; post-deploy smoke — passcode gate rejects/admits, data visible from a second device [FR-027]. Local readiness is complete (`vercel.json`, `.vercelignore`, env checklist, `pnpm build` green), but production deploy/smoke is blocked because `vercel` CLI, `.vercel/project.json`, and `VERCEL_TOKEN`/`VERCEL_ORG_ID`/`VERCEL_PROJECT_ID` are absent in this workspace.
+- [X] T084 Run `/speckit-analyze` and resolve any spec/plan/tasks drift (constitution §Governance compliance review). Drift resolved: quickstart a11y command wording and quality-report gate status updated; T083 external block documented.
 
 ---
 

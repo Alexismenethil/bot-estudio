@@ -51,6 +51,15 @@ async function mockUs4Api(page: Page) {
   let status: "active" | "finished" = "active";
   const answers: { questionId: string; isCorrect: boolean }[] = [];
 
+  await page.route("**/api/review/due**", async (route) => {
+    await route.fulfill({
+      json: {
+        items: [],
+        counts: { total: 0, byType: { flashcard: 0, bankQuestion: 0 }, byCourse: [], byTopic: [] },
+      },
+    });
+  });
+
   function remainingMs() {
     return status === "finished" ? 0 : Math.max(0, startedAt + durationSeconds * 1000 - Date.now());
   }

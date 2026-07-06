@@ -4,6 +4,7 @@ import { courses } from "@/lib/db/schema";
 import { createCourseSchema } from "@/lib/validation/courses";
 import { isUniqueViolation } from "@/lib/db/errors";
 import { getDueQueue } from "@/lib/db/queries";
+import { logEvent } from "@/lib/logging";
 
 export async function GET(request?: Request) {
   const rows = await db.select().from(courses);
@@ -53,6 +54,13 @@ export async function POST(request: Request) {
 
   try {
     const [created] = await db.insert(courses).values(parsed.data).returning();
+    logEvent({
+      boundary: "db",
+      message: "course created",
+      operation: "insert",
+      table: "courses",
+      course_id: created?.id,
+    });
     return NextResponse.json(created, { status: 201 });
   } catch (error) {
     if (isUniqueViolation(error)) {

@@ -2,6 +2,7 @@ import { asc, eq } from "drizzle-orm";
 import type { db as appDb } from "@/lib/db";
 import { bankQuestions, reviewLogs, sessionAnswers, topics, trainerSessions } from "@/lib/db/schema";
 import { sm2Next, type ReviewState } from "@/lib/engine/sm2";
+import { logEvent } from "@/lib/logging";
 
 type Database = typeof appDb;
 
@@ -79,6 +80,16 @@ export async function createTrainerSession(
       questionIds,
     })
     .returning();
+  logEvent({
+    boundary: "db",
+    message: "trainer session created",
+    operation: "insert",
+    table: "trainer_sessions",
+    session_id: created?.id,
+    scope_type: input.scopeType,
+    scope_id: input.scopeId,
+    question_count: questionIds.length,
+  });
 
   return created;
 }
@@ -129,6 +140,15 @@ export async function answerTrainerQuestion(
         lastOutcome: outcome,
       })
       .where(eq(bankQuestions.id, question.id));
+    logEvent({
+      boundary: "db",
+      message: "trainer bank question schedule updated",
+      operation: "update",
+      table: "bank_questions",
+      session_id: session.id,
+      question_id: question.id,
+      outcome,
+    });
   }
 
   await database.insert(reviewLogs).values({
@@ -140,6 +160,16 @@ export async function answerTrainerQuestion(
     prevState,
     newState: review.state,
   });
+  logEvent({
+    boundary: "db",
+    message: "trainer review log created",
+    operation: "insert",
+    table: "review_logs",
+    session_id: session.id,
+    question_id: question.id,
+    outcome,
+    schedule_changed: review.scheduleChanged,
+  });
 
   await database.insert(sessionAnswers).values({
     sessionKind: "trainer",
@@ -147,6 +177,15 @@ export async function answerTrainerQuestion(
     questionId: question.id,
     givenAnswer: input.givenAnswer,
     isCorrect,
+  });
+  logEvent({
+    boundary: "db",
+    message: "trainer answer created",
+    operation: "insert",
+    table: "session_answers",
+    session_id: session.id,
+    question_id: question.id,
+    is_correct: isCorrect,
   });
 
   const nextIndex = Math.max(session.currentIndex, questionIndex + 1);
@@ -157,6 +196,15 @@ export async function answerTrainerQuestion(
       status: nextIndex >= session.questionIds.length ? "finished" : "active",
     })
     .where(eq(trainerSessions.id, session.id));
+  logEvent({
+    boundary: "db",
+    message: "trainer session progress updated",
+    operation: "update",
+    table: "trainer_sessions",
+    session_id: session.id,
+    current_index: nextIndex,
+    status: nextIndex >= session.questionIds.length ? "finished" : "active",
+  });
 
   return {
     isCorrect,

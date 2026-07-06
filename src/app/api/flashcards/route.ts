@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { flashcards } from "@/lib/db/schema";
 import { createFlashcardSchema } from "@/lib/validation/flashcards";
+import { logEvent } from "@/lib/logging";
 
 export async function GET(request: Request) {
   const topicId = new URL(request.url).searchParams.get("topicId");
@@ -22,5 +23,13 @@ export async function POST(request: Request) {
   }
 
   const [created] = await db.insert(flashcards).values(parsed.data).returning();
+  logEvent({
+    boundary: "db",
+    message: "flashcard created",
+    operation: "insert",
+    table: "flashcards",
+    flashcard_id: created?.id,
+    topic_id: created?.topicId,
+  });
   return NextResponse.json(created, { status: 201 });
 }

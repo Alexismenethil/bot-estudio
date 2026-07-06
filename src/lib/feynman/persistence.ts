@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import type { db as appDb } from "@/lib/db";
 import { aiEvaluations, feynmanSubmissions } from "@/lib/db/schema";
 import type { FeynmanEvaluation } from "@/lib/ai/feynman-eval";
+import { logEvent } from "@/lib/logging";
 
 type StudyDb = typeof appDb;
 type FeynmanEngine = "gemini" | "local";
@@ -24,11 +25,27 @@ export async function persistFeynmanEvaluation(
       citations: evaluation.citations,
     })
     .returning();
+  logEvent({
+    boundary: "db",
+    message: "feynman evaluation created",
+    operation: "insert",
+    table: "ai_evaluations",
+    submission_id: submissionId,
+    evaluation_id: created?.id,
+    engine,
+  });
 
   await db
     .update(feynmanSubmissions)
     .set({ status: "evaluated", failureClasses: null, updatedAt: new Date() })
     .where(eq(feynmanSubmissions.id, submissionId));
+  logEvent({
+    boundary: "db",
+    message: "feynman submission marked evaluated",
+    operation: "update",
+    table: "feynman_submissions",
+    submission_id: submissionId,
+  });
 
   return created!;
 }

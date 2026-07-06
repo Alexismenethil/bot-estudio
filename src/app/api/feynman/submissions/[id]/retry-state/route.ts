@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { feynmanSubmissions } from "@/lib/db/schema";
 import { retryStateSchema } from "@/lib/validation/feynman";
+import { logEvent } from "@/lib/logging";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -45,6 +46,17 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     })
     .where(eq(feynmanSubmissions.id, id))
     .returning();
+  logEvent({
+    boundary: "db",
+    level: "warn",
+    message: "feynman submission queued for retry",
+    operation: "update",
+    table: "feynman_submissions",
+    submission_id: updated?.id,
+    status: updated?.status,
+    expected_degradation: true,
+    failure_classes: parsed.data.failureClasses,
+  });
 
   return NextResponse.json(updated);
 }

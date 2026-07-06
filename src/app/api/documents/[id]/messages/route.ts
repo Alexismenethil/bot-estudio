@@ -3,6 +3,7 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { assistantMessages, assistantThreads } from "@/lib/db/schema";
 import { createMessageSchema } from "@/lib/validation/messages";
+import { logEvent } from "@/lib/logging";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -15,6 +16,14 @@ async function findOrCreateThread(documentId: string) {
     return existing;
   }
   const [created] = await db.insert(assistantThreads).values({ documentId }).returning();
+  logEvent({
+    boundary: "db",
+    message: "assistant thread created",
+    operation: "insert",
+    table: "assistant_threads",
+    document_id: documentId,
+    thread_id: created?.id,
+  });
   return created!;
 }
 
@@ -53,6 +62,17 @@ export async function POST(request: Request, { params }: RouteContext) {
     .insert(assistantMessages)
     .values({ threadId: thread.id, ...parsed.data })
     .returning();
+  logEvent({
+    boundary: "db",
+    message: "assistant message created",
+    operation: "insert",
+    table: "assistant_messages",
+    document_id: id,
+    thread_id: thread.id,
+    message_id: message?.id,
+    role: parsed.data.role,
+    status: parsed.data.status,
+  });
 
   return NextResponse.json(message, { status: 201 });
 }
