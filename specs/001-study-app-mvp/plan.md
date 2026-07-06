@@ -68,6 +68,18 @@ chain (FR-008, FR-030)
 Scale is trivial — correctness and test rigor are the graded dimensions, not
 throughput.
 
+## UI Reference
+
+US1 Library viewer and assistant overlay should use these TutorPDF captures as
+layout references:
+
+- `../../design/reference/tutorpdf-visor.png` — PDF viewer surface, page toolbar,
+  zoom controls, and floating bottom tabs (`Subir Archivo`, `Ver Contenido`,
+  `Hablar con Asistente`).
+- `../../design/reference/tutorpdf-asistente-overlay.png` — assistant overlay over
+  the blurred/dimmed viewer, chat header, message layout, input bar, and close
+  control.
+
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
